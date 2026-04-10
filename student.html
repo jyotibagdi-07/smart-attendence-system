@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="header">Student Dashboard</div>
+
+<!-- Profile -->
+<div class="card">
+    <h2 id="name">Parvati</h2>
+    <p>Enrollment: 12345</p>
+    <p>Branch: CSE | Section: A | Sem: 4</p>
+</div>
+
+<!-- Live Attendance -->
+<div class="card">
+    <h3>Live Attendance</h3>
+    <button onclick="markAttendance()">Mark Present</button>
+    <p id="status"></p>
+</div>
+
+<!-- Attendance -->
+<div class="card">
+    <h3>Attendance</h3>
+    <div class="progress-bar">
+        <div class="progress" style="width:60%"></div>
+    </div>
+    <p>6 / 10 Days</p>
+</div>
+
+<!-- Assignments -->
+<div class="card">
+    <h3>Assignments</h3>
+
+    <div class="assignment">
+        <span>Assignment 1</span>
+        <input type="file">
+        <button>Upload PDF</button>
+    </div>
+
+    <div class="assignment">
+        <span>Assignment 2</span>
+        <span>Submitted ✅</span>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+body {
+    font-family: Arial;
+    background: #f3f3f3;
+    margin: 0;
+}
+
+.header {
+    background: purple;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    font-size: 22px;
+}
+
+.card {
+    background: white;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #ddd;
+    border-radius: 5px;
+}
+
+.progress {
+    height: 10px;
+    background: orange;
+}
+
+.assignment {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+button {
+    background: green;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+}
+
+.login-box {
+    width: 300px;
+    margin: 100px auto;
+    text-align: center;
+}
+
+.login-box input,
+.login-box select {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.forgot {
+    color: blue;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    top: 0;
+    left: 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.popup-box input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+label {
+    display: block;
+    margin-top: 8px;
+}
