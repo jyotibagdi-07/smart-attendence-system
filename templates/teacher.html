@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teacher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body onload="loadTeacherData()">
+
+<div class="header">Teacher Dashboard</div>
+
+<div class="card">
+    <h3>Attendance Records</h3>
+    <div id="attendanceContainer"></div>
+</div>
+
+<div class="card">
+    <h3>Assignments</h3>
+    <div id="assignmentContainer"></div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

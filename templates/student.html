@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="header">Student Dashboard</div>
+
+<div class="card">
+    <h2 id="name"></h2>
+</div>
+
+<div class="card">
+    <h3>Attendance</h3>
+    <button onclick="markAttendance()">Mark Attendance</button>
+    <p id="status"></p>
+</div>
+
+<div class="card">
+    <h3>Upload Assignment</h3>
+    <input type="file" class="file-input">
+    <button onclick="uploadFile()">Upload</button>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
