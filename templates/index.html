@@ -1,42 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>Login | Smart Attendance System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="static/style.css">
 </head>
+
 <body>
 
-<div class="header">Smart Attendance System</div>
+  <!-- ========== LOADER ========== -->
+  <div id="loader">
+    <div class="spinner"></div>
+  </div>
 
-<div class="card login-box">
+  <!-- ========== LOGIN CARD ========== -->
+  <div class="login-container">
     <h2>Login</h2>
 
-    <input type="text" id="enrollment" placeholder="Enrollment Number">
-    <input type="password" id="password" placeholder="Password">
+    <form id="loginForm">
 
-    <select id="role">
+      <!-- 🔥 FIXED: Enrollment instead of Username -->
+      <input type="text" id="enrollment" placeholder="Enrollment ID" required>
+
+      <!-- Password -->
+      <div style="position: relative;">
+        <input type="password" id="password" placeholder="Password" required>
+
+        <!-- Toggle button -->
+        <span id="togglePassword" style="
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          cursor: pointer;
+          font-size: 18px;
+        ">👁️</span>
+      </div>
+
+      <!-- 🔥 NEW: Role selection -->
+      <select id="role" required style="
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+      ">
+        <option value="">Select Role</option>
         <option value="student">Student</option>
         <option value="teacher">Teacher</option>
-    </select>
+      </select>
 
-    <button onclick="login()">Login</button>
+      <button type="submit">Login</button>
+    </form>
+  </div>
 
-    <hr>
+  <!-- JS -->
+  <script src="static/script.js"></script>
 
-    <h3>Signup</h3>
-
-    <input type="text" id="name" placeholder="Name">
-    <input type="text" id="new_enrollment" placeholder="Enrollment">
-    <input type="password" id="new_password" placeholder="Create Password">
-
-    <select id="new_role">
-        <option value="student">Student</option>
-        <option value="teacher">Teacher</option>
-    </select>
-
-    <button onclick="signup()">Signup</button>
-</div>
-
-<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

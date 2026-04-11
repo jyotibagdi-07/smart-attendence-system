@@ -1,29 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Student</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>Student Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="static/style.css">
 </head>
-<body>
 
-<div class="header">Student Dashboard</div>
+<body class="student-body">
 
-<div class="card">
-    <h2 id="name"></h2>
-</div>
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <h2>📘 Smart Attendance</h2>
+    <button onclick="openPasswordModal()">⚙️ Change Password</button>
+  </div>
 
-<div class="card">
-    <h3>Attendance</h3>
-    <button onclick="markAttendance()">Mark Attendance</button>
-    <p id="status"></p>
-</div>
+  <!-- MAIN CONTAINER -->
+  <div class="dashboard">
 
-<div class="card">
-    <h3>Upload Assignment</h3>
-    <input type="file" class="file-input">
-    <button onclick="uploadFile()">Upload</button>
-</div>
+    <!-- LEFT PANEL -->
+    <div class="card">
+      <h3>👤 My Status</h3>
+      <p id="studentName">Welcome Student</p>
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+      <button onclick="markAttendance()">Mark Attendance</button>
+    </div>
+
+    <!-- ATTENDANCE TABLE -->
+    <div class="card">
+      <h3>📊 Attendance Records</h3>
+      <table id="attendanceTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- ASSIGNMENTS -->
+    <div class="card">
+      <h3>📂 Upload Assignment</h3>
+      <input type="file" id="fileInput">
+      <button onclick="uploadFile()">Upload</button>
+
+      <ul id="assignmentList"></ul>
+    </div>
+
+  </div>
+
+  <!-- PASSWORD MODAL -->
+  <div id="passwordModal" class="modal">
+    <div class="modal-content">
+      <h3>Change Password</h3>
+      <input type="password" id="oldPass" placeholder="Old Password">
+      <input type="password" id="newPass" placeholder="New Password">
+      <button onclick="changePassword()">Submit</button>
+      <button onclick="closePasswordModal()">Close</button>
+    </div>
+  </div>
+
+  <script src="static/student.js"></script>
 </body>
 </html>

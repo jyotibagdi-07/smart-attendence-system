@@ -1,100 +1,190 @@
-// LOGIN
-function login() {
-    let enrollment = document.getElementById("enrollment").value;
-    let password = document.getElementById("password").value;
-    let role = document.getElementById("role").value;
-
-    fetch("/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ enrollment, password, role })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.redirect) {
-            localStorage.setItem("name", data.name);
-            window.location.href = data.redirect;
-        } else {
-            alert(data.message);
-        }
-    });
+// ================= LOADER =================
+function showLoader() {
+  const loader = document.getElementById("loader");
+  if (loader) loader.style.display = "flex";
 }
 
-// SIGNUP
-function signup() {
-    let name = document.getElementById("name").value;
-    let enrollment = document.getElementById("new_enrollment").value;
-    let password = document.getElementById("new_password").value;
-    let role = document.getElementById("new_role").value;
-
-    fetch("/signup", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ name, enrollment, password, role })
-    })
-    .then(res => res.json())
-    .then(data => alert(data.message));
+function hideLoader() {
+  const loader = document.getElementById("loader");
+  if (loader) loader.style.display = "none";
 }
 
-// STUDENT NAME
-window.onload = function () {
-    let name = localStorage.getItem("name");
-    if (name && document.getElementById("name")) {
-        document.getElementById("name").innerText = name;
+window.addEventListener("load", () => {
+  setTimeout(hideLoader, 400);
+});
+
+
+// ================= LOGIN =================
+const loginForm = document.getElementById("loginForm");
+
+if (loginForm) {
+  loginForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const enrollment = document.getElementById("enrollment").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const role = document.getElementById("role").value;
+
+    if (!enrollment || !password || !role) {
+      alert("Fill all fields ❌");
+      return;
     }
+
+    showLoader();
+
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ enrollment, password, role })
+    });
+
+    const data = await res.json();
+
+    if (data.redirect) {
+      localStorage.setItem("name", data.name);
+      localStorage.setItem("enrollment", enrollment);
+      localStorage.setItem("role", role);
+
+      window.location.href = data.redirect;
+    } else {
+      hideLoader();
+      alert(data.message);
+    }
+  });
+}
+
+
+// ================= PASSWORD TOGGLE =================
+const passwordInput = document.getElementById("password");
+const toggleBtn = document.getElementById("togglePassword");
+
+if (toggleBtn && passwordInput) {
+  toggleBtn.addEventListener("click", () => {
+    const hidden = passwordInput.type === "password";
+    passwordInput.type = hidden ? "text" : "password";
+    toggleBtn.textContent = hidden ? "🙈" : "👁️";
+  });
+}
+
+
+// ==================================================
+// ================= STUDENT SECTION =================
+// ==================================================
+
+if (document.getElementById("attendanceTable")) {
+
+  // Show name
+  const name = localStorage.getItem("name");
+  if (document.getElementById("studentName")) {
+    document.getElementById("studentName").innerText = "Hi, " + name;
+  }
+
+  // LOAD ATTENDANCE
+  async function loadAttendance() {
+    const res = await fetch("/get_attendance");
+    const data = await res.json();
+
+    const table = document.querySelector("#attendanceTable tbody");
+    table.innerHTML = "";
+
+    data.forEach(row => {
+      table.innerHTML += `
+        <tr>
+          <td>${row[1]}</td>
+          <td>${row[2]}</td>
+          <td>${row[3]}</td>
+        </tr>
+      `;
+    });
+  }
+
+  // MARK ATTENDANCE
+  window.markAttendance = async function () {
+  const name = localStorage.getItem("name");
+
+  const res = await fetch("/mark_attendance", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name })
+  });
+
+  const data = await res.json();
+  alert(data.message);
 };
 
-// ATTENDANCE
-function markAttendance() {
-    let name = document.getElementById("name").innerText;
+  // LOAD FILES (FIXED 🔥)
+  async function loadFiles() {
+    const res = await fetch("/get_assignments");
+    const data = await res.json();
 
-    fetch("/mark_attendance", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ name })
-    })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("status").innerText = data.message;
+    const list = document.getElementById("filesList");
+
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    data.forEach(file => {
+      list.innerHTML += `
+        <li style="margin-bottom:8px;">
+          <a href="/uploads/${file[2]}" target="_blank">
+            📄 ${file[2]}
+          </a>
+        </li>
+      `;
     });
+  }
+
+  loadAttendance();
+  loadFiles();
 }
 
-// FILE UPLOAD
-function uploadFile() {
-    let file = document.querySelector(".file-input").files[0];
-    let name = document.getElementById("name").innerText;
 
-    let formData = new FormData();
+// ==================================================
+// ================= TEACHER SECTION =================
+// ==================================================
+
+if (document.getElementById("teacherName")) {
+
+  // Show teacher name
+  document.getElementById("teacherName").innerText =
+    "Hi, " + (localStorage.getItem("name") || "Teacher") + " 👋";
+
+
+  // UPLOAD FILE
+  window.uploadFile = async function (inputId, type) {
+    const file = document.getElementById(inputId).files[0];
+
+    if (!file) {
+      alert("Select file ❌");
+      return;
+    }
+
+    const formData = new FormData();
     formData.append("file", file);
-    formData.append("name", name);
+    formData.append("name", type);
 
-    fetch("/upload", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => alert(data.message));
-}
-
-// TEACHER
-function loadTeacherData() {
-    fetch("/get_attendance")
-    .then(res => res.json())
-    .then(data => {
-        let html = "";
-        data.forEach(s => {
-            html += `<p>${s[1]} - ${s[2]} ${s[3]}</p>`;
-        });
-        document.getElementById("attendanceContainer").innerHTML = html;
+    const res = await fetch("/upload", {
+      method: "POST",
+      body: formData
     });
 
-    fetch("/get_assignments")
-    .then(res => res.json())
-    .then(data => {
-        let html = "";
-        data.forEach(a => {
-            html += `<p>${a[1]} submitted ${a[2]}</p>`;
-        });
-        document.getElementById("assignmentContainer").innerHTML = html;
-    });
+    const data = await res.json();
+    alert(data.message);
+  };
+
+  // LOGOUT
+  window.logout = function () {
+    localStorage.clear();
+    window.location.href = "/";
+  };
 }
+//toggle attendance
+window.toggleAttendance = async function () {
+  const res = await fetch("/toggle_attendance", {
+    method: "POST"
+  });
+
+  const data = await res.json();
+
+  document.getElementById("attendanceStatus").innerText = data.status;
+};

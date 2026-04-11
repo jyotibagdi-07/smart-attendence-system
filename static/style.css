@@ -1,130 +1,321 @@
-/* Reset */
+/* ================= RESET ================= */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-/* Body */
+/* ================= BODY ================= */
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f9;
+  background: #E6E6FA; /* lavender for login */
+  min-height: 100vh;
 }
 
-/* Header */
-.header {
-    background: linear-gradient(90deg, #6a11cb, #2575fc);
-    color: white;
-    text-align: center;
-    padding: 18px;
-    font-size: 24px;
-    font-weight: bold;
-    letter-spacing: 1px;
+/* Student page override */
+.student-body {
+  background: white;
 }
 
-/* Card Container */
+
+/* ================= LOADER ================= */
+#loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #E6E6FA;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.spinner {
+  width: 80px;
+  height: 80px;
+  border: 8px solid #d3cce3;
+  border-top: 8px solid #6a5acd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ================= LOGIN ================= */
+.login-container {
+  background: white;
+  padding: 35px;
+  border-radius: 15px;
+  width: 350px;
+  margin: auto;
+  margin-top: 10vh;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #6a5acd;
+}
+
+.login-container input,
+.login-container select {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.login-container input:focus,
+.login-container select:focus {
+  border-color: #6a5acd;
+  outline: none;
+  box-shadow: 0 0 5px rgba(106, 90, 205, 0.3);
+}
+
+.login-container button {
+  width: 100%;
+  padding: 12px;
+  background: #6a5acd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 10px;
+}
+
+.login-container button:hover {
+  background: #5848c2;
+}
+
+
+/* ================= NAVBAR ================= */
+.navbar {
+  background: #4b0082;
+  color: white;
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar h2 {
+  font-size: 20px;
+}
+
+.navbar button {
+  background: #e6e6fa;
+  color: #4b0082;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.navbar button:hover {
+  background: #dcd6f7;
+}
+
+
+/* ================= DASHBOARD ================= */
+.dashboard {
+  display: flex;
+  flex-direction: column;   /* 🔥 vertical layout */
+  gap: 30px;
+  padding: 20px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+
+/* ================= CARD ================= */
 .card {
-    background: white;
-    margin: 20px auto;
-    padding: 20px;
-    border-radius: 12px;
+  background: #f8f5ff;
+  border-left: 6px solid #6a5acd;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card h3 {
+  margin-bottom: 10px;
+  color: #4b0082;
+}
+
+.card p {
+  color: #444;
+}
+
+/* Buttons inside cards */
+.card button {
+  background: #6a5acd;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.card button:hover {
+  background: #5848c2;
+}
+
+
+/* ================= TABLE ================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+table th {
+  background: #6a5acd;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+table tr:hover {
+  background: #f1efff;
+}
+
+
+/* ================= FILE INPUT ================= */
+input[type="file"] {
+  margin-top: 10px;
+}
+
+
+/* ================= MODAL ================= */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  width: 320px;
+  margin: 120px auto;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.modal-content button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+
+/* ================= ANIMATION ================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 500px) {
+  .login-container {
     width: 90%;
-    max-width: 600px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  .navbar h2 {
+    font-size: 16px;
+  }
+}
+/* ===== PREMIUM CARD ===== */
+.card {
+  background: linear-gradient(135deg, #f8f5ff, #ffffff);
+  border-left: 6px solid #6a5acd;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(106, 90, 205, 0.1);
+  transition: 0.3s;
 }
 
-/* Login Box */
-.login-box {
-    width: 320px;
-    text-align: center;
-    margin-top: 100px;
+.card:hover {
+  transform: translateY(-5px) scale(1.01);
 }
 
-/* Inputs */
-input, select {
-    width: 90%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    outline: none;
+/* Highlight card */
+.highlight {
+  border-left: 6px solid #4b0082;
 }
 
-/* Buttons */
+/* STATUS */
+.status {
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.status.on {
+  background: #d4f8d4;
+  color: green;
+}
+
+.status.off {
+  background: #ffe0e0;
+  color: red;
+}
+
+/* BUTTON IMPROVE */
 button {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.3s;
+  transition: 0.3s;
 }
 
 button:hover {
-    background: #218838;
+  transform: scale(1.03);
 }
 
-/* Progress Bar */
-.progress-bar {
-    width: 100%;
-    height: 12px;
-    background: #ddd;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-top: 10px;
-}
-
-.progress {
-    height: 12px;
-    background: #ff9800;
-}
-
-/* Assignment Section */
-.assignment {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 12px;
-    padding: 10px;
-    background: #f9f9f9;
-    border-radius: 6px;
-}
-
-/* File Input */
-.file-input {
-    margin-top: 10px;
-}
-
-/* Status Text */
-#status {
-    margin-top: 10px;
-    font-weight: bold;
-    color: #333;
-}
-
-/* Teacher Data */
-#attendanceContainer p,
-#assignmentContainer p {
-    background: #f1f1f1;
-    padding: 8px;
-    border-radius: 6px;
-    margin-top: 8px;
-}
-
-/* Hover Effect */
-.card:hover {
-    transform: scale(1.01);
-    transition: 0.3s;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-    .card {
-        width: 95%;
-    }
-
-    .login-box {
-        width: 90%;
-    }
+/* FILE INPUT */
+input[type="file"] {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
