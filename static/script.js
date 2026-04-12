@@ -1,4 +1,6 @@
-// ================= LOGIN =================
+//////////////////////////////////////////////////
+// LOGIN
+//////////////////////////////////////////////////
 function login(){
 let e=document.getElementById("enrollment").value;
 let p=document.getElementById("password").value;
@@ -9,37 +11,58 @@ method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({enrollment:e,password:p,role:r})
 })
-.then(res=>res.json())
+.then(r=>r.json())
 .then(d=>{
 if(d.redirect){
 localStorage.setItem("name",d.name);
+localStorage.setItem("enrollment",e);
+localStorage.setItem("role",r);
 location.href=d.redirect;
 }else alert(d.message);
 });
 }
 
-
-// LOGOUT
 function logout(){
 localStorage.clear();
 location.href="/";
 }
 
 //////////////////////////////////////////////////
-// STUDENT
+// CHANGE PASSWORD
 //////////////////////////////////////////////////
+function togglePasswordBox(){
+let box=document.getElementById("passwordBox");
+if(box) box.style.display = box.style.display==="none"?"block":"none";
+}
 
+function changePassword(){
+fetch("/change_password",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+enrollment:localStorage.getItem("enrollment"),
+old:document.getElementById("oldPass").value,
+new:document.getElementById("newPass").value
+})
+})
+.then(r=>r.json())
+.then(d=>alert(d.message));
+}
+
+//////////////////////////////////////////////////
+// STUDENT SECTION
+//////////////////////////////////////////////////
 if(document.getElementById("studentName")){
 
 let name=localStorage.getItem("name");
 document.getElementById("studentName").innerText=name;
 
-// SWITCH
+// SECTION SWITCH
 window.showSection=function(section){
 
-document.getElementById("dashboardSection").style.display="none";
-document.getElementById("attendanceSection").style.display="none";
-document.getElementById("assignmentSection").style.display="none";
+document.querySelectorAll(".section").forEach(sec=>{
+sec.style.display="none";
+});
 
 if(section==="dashboard"){
 document.getElementById("dashboardSection").style.display="block";
@@ -47,79 +70,77 @@ loadDashboard();
 }
 else if(section==="attendance"){
 document.getElementById("attendanceSection").style.display="block";
+loadAttendance();
+checkAttendance();
 }
-else{
+else if(section==="assignment"){
 document.getElementById("assignmentSection").style.display="block";
 loadAssignments();
+}
+else if(section==="notes"){
+document.getElementById("notesSection").style.display="block";
+loadNotes();
+}
+else if(section==="announcements"){
+document.getElementById("announcementsSection").style.display="block";
+loadAnnouncements();
 }
 }
 
 // DASHBOARD
-// PIE CHART
-new Chart(document.getElementById("pieChart"),{
-type:"doughnut",
-data:{
-labels:["Present","Absent"],
-datasets:[{
-data:[present,total-present]
-}]
-}
-});
-// BAR CHART
-new Chart(document.getElementById("barChart"),{
-type:"bar",
-data:{
-labels:["Mid","End"],
-datasets:[{
-label:"Marks",
-data:[Math.random()*30, Math.random()*60]
-}]
-}
-});
-
 function loadDashboard(){
 
-fetch("/get_attendance")
-.then(r=>r.json())
-.then(data=>{
+fetch("/get_attendance").then(r=>r.json()).then(data=>{
 let my=data.filter(d=>d[1]===name);
 let present=my.length;
-let percent=present*10;
+let total=10;
 
+let percent=Math.round((present/total)*100);
 document.getElementById("attValue").innerText=percent+"%";
 
-new Chart(document.getElementById("pieChart"),{
+if(window.pieChart) window.pieChart.destroy();
+
+window.pieChart=new Chart(document.getElementById("pieChart"),{
 type:"doughnut",
 data:{
 labels:["Present","Absent"],
-datasets:[{data:[present,10-present]}]
+datasets:[{data:[present,total-present]}]
 }
 });
 });
 
-fetch("/get_assignments")
+fetch(`/get_assignments?name=${name}&role=student`)
 .then(r=>r.json())
-.then(data=>{
-document.getElementById("assignValue").innerText=data.length;
-});
+.then(d=>document.getElementById("assignValue").innerText=d.length);
 
-fetch("/get_marks")
+fetch("/get_marks").then(r=>r.json()).then(data=>{
+let m=data.find(x=>x[1]===name);
+if(m){
+document.getElementById("marksValue").innerText=m[2]+m[3];
+}
+});
+}
+
+// ATTENDANCE
+function loadAttendance(){
+fetch("/get_attendance").then(r=>r.json()).then(data=>{
+let my=data.filter(d=>d[1]===name);
+let present=my.length;
+let total=10;
+
+let percent=(present/total)*100;
+document.getElementById("progressFill").style.width=percent+"%";
+document.getElementById("percentText").innerText=`${present}/${total}`;
+});
+}
+
+function checkAttendance(){
+fetch("/attendance_status")
 .then(r=>r.json())
-.then(data=>{
-let my=data.find(m=>m[1]===name);
-
-if(my){
-let total=my[2]+my[3];
-document.getElementById("marksValue").innerText=total;
-
-new Chart(document.getElementById("barChart"),{
-type:"bar",
-data:{
-labels:["Mid","End"],
-datasets:[{data:[my[2],my[3]]}]
-}
-});
-}
+.then(d=>{
+let btn=document.getElementById("attBtn");
+btn.disabled=!d.enabled;
+btn.innerText=d.enabled?"Mark Attendance":"Closed ❌";
 });
 }
 
@@ -130,10 +151,28 @@ headers:{"Content-Type":"application/json"},
 body:JSON.stringify({name:name})
 })
 .then(r=>r.json())
-.then(d=>alert(d.message));
+.then(d=>{
+alert(d.message);
+loadAttendance();
+});
 }
 
-// ASSIGNMENT
+// ASSIGNMENTS
+function loadAssignments(){
+fetch(`/get_assignments?name=${name}&role=student`)
+.then(r=>r.json())
+.then(data=>{
+let list=document.getElementById("assignmentList");
+list.innerHTML="";
+
+data.forEach(a=>{
+list.innerHTML+=`<li>
+<a href="/uploads/${a[2]}" target="_blank">${a[2]}</a>
+</li>`;
+});
+});
+}
+
 window.uploadFile=function(){
 let file=document.getElementById("fileInput").files[0];
 let fd=new FormData();
@@ -142,134 +181,191 @@ fd.append("name",name);
 
 fetch("/upload",{method:"POST",body:fd})
 .then(r=>r.json())
-.then(d=>alert(d.message));
-}
-
-loadDashboard();
-}
-// ATTENDANCE
-window.markAttendance=function(){
-fetch("/mark_attendance",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({name:name})
-})
-.then(r=>r.json()).then(d=>alert(d.message));
-}
-
-function loadAttendance(){
-fetch("/get_attendance")
-.then(r=>r.json())
-.then(data=>{
-
-let my=data.filter(d=>d[1]===name);
-let percent=my.length*10;
-
-document.getElementById("progressFill").style.width=percent+"%";
-document.getElementById("percentText").innerText=percent+"%";
-
+.then(d=>{
+alert(d.message);
+loadAssignments();
 });
 }
 
-// ASSIGNMENTS
-function loadAssignments(){
-fetch("/get_assignments")
+// NOTES
+function loadNotes(){
+fetch("/get_notes")
 .then(r=>r.json())
 .then(data=>{
+let list=document.getElementById("notesList");
+list.innerHTML="";
 
-let list=document.getElementById("assignmentList");
+data.forEach(n=>{
+list.innerHTML+=`<li>
+<a href="/uploads/${n[2]}" target="_blank">${n[1]}</a>
+</li>`;
+});
+});
+}
+
+// ANNOUNCEMENTS
+function loadAnnouncements(){
+fetch("/get_announcements")
+.then(r=>r.json())
+.then(data=>{
+let list=document.getElementById("announcementList");
 list.innerHTML="";
 
 data.forEach(a=>{
-list.innerHTML+=`
-<li>
-<a href="/uploads/${a[2]}" target="_blank">${a[2]}</a>
-<span class="status green">Submitted</span>
-</li>`;
+list.innerHTML+=`<li>${a[2]} - ${a[1]}</li>`;
 });
-
 });
 }
 
-// ================= TEACHER DASHBOARD =================
+// AUTO LOAD
+document.addEventListener("DOMContentLoaded",function(){
+showSection("dashboard");
+});
+}
 
+//////////////////////////////////////////////////
+// TEACHER SECTION
+//////////////////////////////////////////////////
 if(document.getElementById("teacherName")){
 
-// show teacher name
 document.getElementById("teacherName").innerText =
-"Hi, " + (localStorage.getItem("name") || "Teacher");
+"Hi " + localStorage.getItem("name");
 
 // SWITCH
-function showTeacher(section){
+window.showTeacher=function(section){
 
-document.getElementById("teacherDashboard").style.display="none";
-document.getElementById("studentSection").style.display="none";
-document.getElementById("marksSection").style.display="none";
+document.querySelectorAll(".section").forEach(sec=>{
+sec.style.display="none";
+});
 
 if(section==="dashboard"){
 document.getElementById("teacherDashboard").style.display="block";
-loadTeacherDashboard();
+loadStatus();
 }
 else if(section==="students"){
 document.getElementById("studentSection").style.display="block";
 loadStudents();
 }
-else{
+else if(section==="assignments"){
+document.getElementById("assignmentSection").style.display="block";
+loadAssignmentsTeacher();
+}
+else if(section==="announcements"){
+document.getElementById("announcementSection").style.display="block";
+}
+else if(section==="marks"){
 document.getElementById("marksSection").style.display="block";
-loadMarksTable();
+loadMarks();
 }
 }
 
-// LOAD DASHBOARD
-function loadTeacherDashboard(){
-
-fetch("/get_attendance")
+// ATTENDANCE STATUS
+function loadStatus(){
+fetch("/attendance_status")
 .then(r=>r.json())
-.then(data=>{
-document.getElementById("totalAttendance").innerText=data.length;
+.then(d=>{
+document.getElementById("attStatus").innerText =
+d.enabled ? "ON ✅" : "OFF ❌";
 });
-
-fetch("/get_assignments")
-.then(r=>r.json())
-.then(data=>{
-document.getElementById("totalAssignments").innerText=data.length;
-});
-
-fetch("/get_students")
-.then(r=>r.json())
-.then(data=>{
-document.getElementById("totalStudents").innerText=data.length;
-});
-
 }
 
-// LOAD STUDENTS
+window.toggleAttendance=function(){
+fetch("/toggle_attendance",{method:"POST"})
+.then(()=>loadStatus());
+}
+
+// STUDENTS
 function loadStudents(){
+fetch("/get_students").then(r=>r.json()).then(students=>{
+fetch("/get_attendance").then(r=>r.json()).then(att=>{
 
-fetch("/get_students")
-.then(r=>r.json())
-.then(data=>{
+let today=new Date().toISOString().slice(0,10);
 
-let html="";
-data.forEach(s=>{
-html+=`<tr>
+let table=document.getElementById("studentTable");
+table.innerHTML="";
+
+students.forEach(s=>{
+let marked=att.some(a=>a[1]===s[0] && a[2]===today);
+
+table.innerHTML+=`
+<tr>
+<td>${s[0]}</td>
 <td>${s[1]}</td>
-<td>${s[2]}</td>
+<td style="color:${marked?'green':'grey'}">
+${marked?'✔':'✖'}
+</td>
 </tr>`;
 });
 
-document.getElementById("studentTable").innerHTML=html;
-
 });
-
+});
 }
 
-// SAVE MARKS
-window.saveMarks=function(){
+// ASSIGNMENTS
+function loadAssignmentsTeacher(){
+fetch("/get_assignments?role=teacher")
+.then(r=>r.json())
+.then(data=>{
+let list=document.getElementById("teacherAssignList");
+list.innerHTML="";
 
-let name=document.getElementById("studentNameInput").value;
-let mid=document.getElementById("midMarksInput").value;
-let end=document.getElementById("endMarksInput").value;
+data.forEach(a=>{
+list.innerHTML+=`
+<li>
+${a[2]} - <a href="/uploads/${a[2]}" target="_blank">View</a>
+</li>`;
+});
+});
+}
+
+window.uploadAssignment=function(){
+let fd=new FormData();
+fd.append("file",document.getElementById("assignFile").files[0]);
+fd.append("name","teacher");
+
+fetch("/upload",{method:"POST",body:fd})
+.then(r=>r.json())
+.then(d=>{
+alert(d.message);
+loadAssignmentsTeacher();
+});
+}
+
+// ANNOUNCEMENTS
+window.postAnnouncement=function(){
+fetch("/add_announcement",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+message:document.getElementById("announcementInput").value
+})
+})
+.then(r=>r.json())
+.then(d=>alert(d.message));
+}
+
+// MARKS
+function loadMarks(){
+fetch("/get_students").then(r=>r.json()).then(students=>{
+let table=document.getElementById("marksTable");
+table.innerHTML="";
+
+students.forEach(s=>{
+table.innerHTML+=`
+<tr>
+<td>${s[0]}</td>
+<td>${s[1]}</td>
+<td><input id="mid_${s[1]}" style="width:60px"></td>
+<td><input id="end_${s[1]}" style="width:60px"></td>
+<td><button onclick="updateMarks('${s[0]}','${s[1]}')">Update</button></td>
+</tr>`;
+});
+});
+}
+
+window.updateMarks=function(name,enroll){
+let mid=document.getElementById("mid_"+enroll).value;
+let end=document.getElementById("end_"+enroll).value;
 
 fetch("/save_marks",{
 method:"POST",
@@ -277,37 +373,31 @@ headers:{"Content-Type":"application/json"},
 body:JSON.stringify({name,mid,end})
 })
 .then(r=>r.json())
-.then(d=>{
-alert(d.message);
-loadMarksTable();
-});
-
+.then(d=>alert(d.message));
 }
 
-// LOAD MARKS
-function loadMarksTable(){
+// SEARCH
+window.searchStudent=function(){
+let val=document.getElementById("searchEnroll").value;
 
-fetch("/get_marks")
-.then(r=>r.json())
-.then(data=>{
+fetch("/get_students").then(r=>r.json()).then(students=>{
+let s=students.find(x=>x[1]===val);
 
-let html="";
-data.forEach(m=>{
-html+=`<tr>
-<td>${m[1]}</td>
-<td>${m[2]}</td>
-<td>${m[3]}</td>
-<td>${m[2]+m[3]}</td>
+if(!s){ alert("Not found"); return; }
+
+document.getElementById("marksTable").innerHTML=`
+<tr>
+<td>${s[0]}</td>
+<td>${s[1]}</td>
+<td><input id="mid_${s[1]}"></td>
+<td><input id="end_${s[1]}"></td>
+<td><button onclick="updateMarks('${s[0]}','${s[1]}')">Update</button></td>
 </tr>`;
 });
-
-document.getElementById("marksTable").innerHTML=html;
-
-});
-
 }
 
 // AUTO LOAD
-loadTeacherDashboard();
-
+document.addEventListener("DOMContentLoaded",function(){
+showTeacher("dashboard");
+});
 }

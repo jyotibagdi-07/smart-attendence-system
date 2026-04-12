@@ -3,7 +3,6 @@
 <head>
 <title>Teacher Dashboard</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -13,10 +12,11 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
 <h2>EduSmart</h2>
-
 <ul>
 <li onclick="showTeacher('dashboard')">📊 Dashboard</li>
 <li onclick="showTeacher('students')">👨‍🎓 Students</li>
+<li onclick="showTeacher('assignments')">📂 Assignments</li>
+<li onclick="showTeacher('announcements')">📢 Announcements</li>
 <li onclick="showTeacher('marks')">📝 Marks</li>
 </ul>
 </div>
@@ -24,68 +24,36 @@
 <!-- MAIN -->
 <div class="main">
 
+<!-- HEADER -->
 <div class="header">
 <h2 id="teacherName">Hi, Teacher</h2>
 <button onclick="logout()">Logout</button>
 </div>
 
 <!-- ================= DASHBOARD ================= -->
-<div id="teacherDashboard">
+<div id="teacherDashboard" class="section">
 
-<!-- TOP CARDS -->
-<div class="cards">
-<div class="small">
-<h4>Total Students</h4>
-<p id="totalStudents">0</p>
-</div>
-
-<div class="small">
-<h4>Attendance</h4>
-<p id="totalAttendance">0</p>
-</div>
-
-<div class="small">
-<h4>Assignments</h4>
-<p id="totalAssignments">0</p>
-</div>
-</div>
-
-<!-- GRAPHS -->
-<div class="charts">
-
-<div class="card">
-<h3>📊 Attendance Overview</h3>
-<canvas id="attendanceChart"></canvas>
-</div>
-
-<div class="card">
-<h3>📂 Assignment Submissions</h3>
-<canvas id="assignmentChart"></canvas>
-</div>
-
-</div>
-
-<!-- QUICK ACTION -->
-<div class="card">
-<h3>⚡ Quick Actions</h3>
+<h3>📊 Attendance Control</h3>
 
 <button onclick="toggleAttendance()">Start / Stop Attendance</button>
 
-</div>
+<p>Status: 
+<span id="attStatus" style="font-weight:bold;">Loading...</span>
+</p>
 
 </div>
 
 <!-- ================= STUDENTS ================= -->
-<div id="studentSection" style="display:none;">
-<div class="card">
+<div id="studentSection" class="section" style="display:none;">
 
-<h3>👨‍🎓 Students List</h3>
+<h3>👨‍🎓 Students + Attendance</h3>
 
 <table>
 <thead>
 <tr>
 <th>Name</th>
 <th>Enrollment</th>
+<th>Today</th>
 </tr>
 </thead>
 
@@ -94,29 +62,49 @@
 </table>
 
 </div>
+
+<!-- ================= ASSIGNMENTS ================= -->
+<div id="assignmentSection" class="section" style="display:none;">
+
+<h3>📂 Create Assignment</h3>
+
+<input id="assignTitle" placeholder="Assign1 / Assign2">
+<input type="file" id="assignFile">
+
+<button onclick="uploadAssignment()">Upload</button>
+
+<h3>📄 All Assignments</h3>
+
+<ul id="teacherAssignList"></ul>
+
+</div>
+
+<!-- ================= ANNOUNCEMENTS ================= -->
+<div id="announcementSection" class="section" style="display:none;">
+
+<h3>📢 Post Announcement</h3>
+
+<input id="announcementInput" placeholder="Type announcement here">
+<button onclick="postAnnouncement()">Post</button>
+
 </div>
 
 <!-- ================= MARKS ================= -->
-<div id="marksSection" style="display:none;">
-<div class="card">
+<div id="marksSection" class="section" style="display:none;">
 
-<h3>📝 Give Marks</h3>
+<h3>📝 Marks Entry</h3>
 
-<input id="studentNameInput" placeholder="Student Name">
-<input id="midMarksInput" placeholder="Mid Marks">
-<input id="endMarksInput" placeholder="End Marks">
-
-<button onclick="saveMarks()">Save Marks</button>
-
-<h3>📊 Marks Records</h3>
+<input id="searchEnroll" placeholder="Search by Enrollment">
+<button onclick="searchStudent()">Search</button>
 
 <table>
 <thead>
 <tr>
 <th>Name</th>
+<th>Enrollment</th>
 <th>Mid</th>
 <th>End</th>
-<th>Total</th>
+<th>Update</th>
 </tr>
 </thead>
 
@@ -125,11 +113,12 @@
 </table>
 
 </div>
-</div>
 
 </div>
 </div>
 
+<!-- SCRIPT -->
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+
 </body>
 </html>

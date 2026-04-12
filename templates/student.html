@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dashboard</title>
+<title>Student Dashboard</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -13,11 +13,12 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
 <h2>EduSmart</h2>
-
 <ul>
 <li onclick="showSection('dashboard')">🏠 Dashboard</li>
 <li onclick="showSection('attendance')">📊 Attendance</li>
 <li onclick="showSection('assignment')">📂 Assignments</li>
+<li onclick="showSection('notes')">📚 Notes</li>
+<li onclick="showSection('announcements')">📢 Announcements</li>
 </ul>
 </div>
 
@@ -27,68 +28,60 @@
 <div class="header">
 <h2 id="studentName"></h2>
 <button onclick="logout()">Logout</button>
+<button onclick="togglePasswordBox()">Change Password</button>
 </div>
 
-<!-- 🔥 DASHBOARD -->
+<!-- CHANGE PASSWORD -->
+<div id="passwordBox" style="display:none;">
+<input id="oldPass" placeholder="Old Password">
+<input id="newPass" placeholder="New Password">
+<button onclick="changePassword()">Update</button>
+</div>
+
+<!-- DASHBOARD -->
 <div id="dashboardSection" class="section">
-
 <div class="cards">
-<div class="card small">
-<h4>Attendance</h4>
-<p id="attValue">0%</p>
-</div>
-
-<div class="card small">
-<h4>Assignments</h4>
-<p id="assignValue">0</p>
-</div>
-
-<div class="card small">
-<h4>Marks</h4>
-<p id="marksValue">0</p>
-</div>
+<div class="card small"><h4>Attendance</h4><p id="attValue">0%</p></div>
+<div class="card small"><h4>Assignments</h4><p id="assignValue">0</p></div>
+<div class="card small"><h4>Marks</h4><p id="marksValue">0</p></div>
 </div>
 
 <div class="charts">
-<div class="card">
-<h3>Attendance</h3>
-<canvas id="pieChart"></canvas>
+<div class="card"><canvas id="pieChart"></canvas></div>
+<div class="card"><canvas id="barChart"></canvas></div>
 </div>
-
-<div class="card">
-<h3>Marks</h3>
-<canvas id="barChart"></canvas>
-</div>
-</div>
-
 </div>
 
 <!-- ATTENDANCE -->
 <div id="attendanceSection" class="section" style="display:none;">
 <div class="card">
-
 <h3>Attendance</h3>
-
-<div class="progress-bar">
-<div id="progressFill"></div>
-</div>
-
+<div class="progress-bar"><div id="progressFill"></div></div>
 <p id="percentText"></p>
-
-<button onclick="markAttendance()">Mark Attendance</button>
-
+<button id="attBtn" onclick="markAttendance()">Mark Attendance</button>
 </div>
 </div>
 
-<!-- ASSIGNMENT -->
+<!-- ASSIGNMENTS -->
 <div id="assignmentSection" class="section" style="display:none;">
 <div class="card">
-
 <input type="file" id="fileInput">
 <button onclick="uploadFile()">Upload</button>
-
 <ul id="assignmentList"></ul>
+</div>
+</div>
 
+<!-- NOTES -->
+<div id="notesSection" class="section" style="display:none;">
+<div class="card">
+<ul id="notesList"></ul>
+</div>
+</div>
+
+<!-- ANNOUNCEMENTS -->
+<div id="announcementsSection" class="section" style="display:none;">
+<div class="card">
+<ul id="announcementList"></ul>
 </div>
 </div>
 
