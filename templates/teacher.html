@@ -1,59 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Teacher Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="static/style.css">
+<title>Teacher Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="student-body">
+<body>
 
-  <!-- NAVBAR -->
-  <div class="navbar">
-    <h2 id="teacherName">Hi, Teacher 👋</h2>
-    <button onclick="logout()">Logout</button>
-  </div>
+<div class="layout">
 
-  <!-- DASHBOARD -->
-  <div class="dashboard">
+<!-- SIDEBAR -->
+<div class="sidebar">
+<h2>EduSmart</h2>
 
-    <!-- ATTENDANCE CONTROL -->
-    <div class="card highlight">
-      <h3>📊 Attendance Control</h3>
+<ul>
+<li onclick="showTeacher('dashboard')">📊 Dashboard</li>
+<li onclick="showTeacher('students')">👨‍🎓 Students</li>
+<li onclick="showTeacher('marks')">📝 Marks</li>
+</ul>
+</div>
 
-      <p>Status:
-        <span id="attendanceStatus" class="status off">OFF</span>
-      </p>
-      <button id="toggleBtn" onclick="toggleAttendance()">
-  Start Attendance
-</button>
-      
-    </div>
+<!-- MAIN -->
+<div class="main">
 
-    <!-- ASSIGNMENTS -->
-    <div class="card">
-      <h3>📂 Upload Assignments</h3>
+<div class="header">
+<h2 id="teacherName">Hi, Teacher</h2>
+<button onclick="logout()">Logout</button>
+</div>
 
-      <input type="file" id="assignmentFile">
-      <button onclick="uploadFile('assignmentFile', 'Assignment')">
-        Upload Assignment
-      </button>
-    </div>
+<!-- ================= DASHBOARD ================= -->
+<div id="teacherDashboard">
 
-    <!-- NOTES -->
-    <div class="card">
-      <h3>📘 Upload Notes</h3>
+<!-- TOP CARDS -->
+<div class="cards">
+<div class="small">
+<h4>Total Students</h4>
+<p id="totalStudents">0</p>
+</div>
 
-      <input type="file" id="notesFile">
-      <button onclick="uploadFile('notesFile', 'Notes')">
-        Upload Notes
-      </button>
-    </div>
+<div class="small">
+<h4>Attendance</h4>
+<p id="totalAttendance">0</p>
+</div>
 
-  </div>
+<div class="small">
+<h4>Assignments</h4>
+<p id="totalAssignments">0</p>
+</div>
+</div>
 
-  <script src="static/teacher.js"></script>
+<!-- GRAPHS -->
+<div class="charts">
+
+<div class="card">
+<h3>📊 Attendance Overview</h3>
+<canvas id="attendanceChart"></canvas>
+</div>
+
+<div class="card">
+<h3>📂 Assignment Submissions</h3>
+<canvas id="assignmentChart"></canvas>
+</div>
+
+</div>
+
+<!-- QUICK ACTION -->
+<div class="card">
+<h3>⚡ Quick Actions</h3>
+
+<button onclick="toggleAttendance()">Start / Stop Attendance</button>
+
+</div>
+
+</div>
+
+<!-- ================= STUDENTS ================= -->
+<div id="studentSection" style="display:none;">
+<div class="card">
+
+<h3>👨‍🎓 Students List</h3>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Enrollment</th>
+</tr>
+</thead>
+
+<tbody id="studentTable"></tbody>
+
+</table>
+
+</div>
+</div>
+
+<!-- ================= MARKS ================= -->
+<div id="marksSection" style="display:none;">
+<div class="card">
+
+<h3>📝 Give Marks</h3>
+
+<input id="studentNameInput" placeholder="Student Name">
+<input id="midMarksInput" placeholder="Mid Marks">
+<input id="endMarksInput" placeholder="End Marks">
+
+<button onclick="saveMarks()">Save Marks</button>
+
+<h3>📊 Marks Records</h3>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Mid</th>
+<th>End</th>
+<th>Total</th>
+</tr>
+</thead>
+
+<tbody id="marksTable"></tbody>
+
+</table>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

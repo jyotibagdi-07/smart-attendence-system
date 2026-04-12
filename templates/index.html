@@ -1,64 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Login | Smart Attendance System</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="static/style.css">
+<title>Login</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-<body>
+<body class="login-bg">
 
-  <!-- ========== LOADER ========== -->
-  <div id="loader">
-    <div class="spinner"></div>
-  </div>
+<div class="login-card">
 
-  <!-- ========== LOGIN CARD ========== -->
-  <div class="login-container">
-    <h2>Login</h2>
+<h2>🎓 EduSmart</h2>
 
-    <form id="loginForm">
+<input id="enrollment" placeholder="Enrollment">
+<input id="password" type="password" placeholder="Password">
 
-      <!-- 🔥 FIXED: Enrollment instead of Username -->
-      <input type="text" id="enrollment" placeholder="Enrollment ID" required>
+<select id="role">
+<option value="student">Student</option>
+<option value="teacher">Teacher</option>
+</select>
 
-      <!-- Password -->
-      <div style="position: relative;">
-        <input type="password" id="password" placeholder="Password" required>
+<button onclick="login()">Login</button>
 
-        <!-- Toggle button -->
-        <span id="togglePassword" style="
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          cursor: pointer;
-          font-size: 18px;
-        ">👁️</span>
-      </div>
+</div>
 
-      <!-- 🔥 NEW: Role selection -->
-      <select id="role" required style="
-        width: 100%;
-        padding: 12px;
-        margin: 10px 0;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-      ">
-        <option value="">Select Role</option>
-        <option value="student">Student</option>
-        <option value="teacher">Teacher</option>
-      </select>
-
-      <button type="submit">Login</button>
-    </form>
-  </div>
-
-  <!-- JS -->
-  <script src="static/script.js"></script>
-
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

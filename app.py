@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import sqlite3
 from datetime import datetime
 import os
@@ -6,10 +6,9 @@ import csv
 
 app = Flask(__name__)
 
-# -------- GLOBAL ATTENDANCE SWITCH --------
-attendance_enabled = False
+attendance_enabled = True   # 🔥 ON by default (important)
 
-# -------- CREATE UPLOADS FOLDER --------
+# Create uploads folder
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
@@ -18,6 +17,7 @@ def init_db():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
+    # USERS
     c.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
@@ -26,6 +26,7 @@ def init_db():
         role TEXT
     )''')
 
+    # ATTENDANCE
     c.execute('''CREATE TABLE IF NOT EXISTS attendance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
@@ -33,54 +34,48 @@ def init_db():
         time TEXT
     )''')
 
+    # ASSIGNMENTS
     c.execute('''CREATE TABLE IF NOT EXISTS assignments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
         filename TEXT
     )''')
 
+    # 🔥 MARKS TABLE (NEW)
+    c.execute('''CREATE TABLE IF NOT EXISTS marks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        mid INTEGER,
+        end INTEGER
+    )''')
+
     conn.commit()
     conn.close()
 
-
-# -------- INSERT FROM CSV --------
-def insert_from_csv():
+# -------- INSERT STUDENTS --------
+def insert_students():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
-    c.execute("SELECT COUNT(*) FROM users WHERE role='student'")
-    count = c.fetchone()[0]
+    with open("students.csv", newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
 
-    if count == 0:
-        with open("students.csv", newline='', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
+        for row in reader:
+            try:
+                c.execute(
+                    "INSERT INTO users (name, enrollment, password, role) VALUES (?, ?, ?, ?)",
+                    (row['name'], row['enrollment'], "1234", "student")
+                )
+            except:
+                pass
 
-            for row in reader:
-                name = row.get('name', '').strip()
-                enrollment = row.get('enrollment', '').strip()
-
-                if not name or not enrollment:
-                    continue
-
-                try:
-                    c.execute(
-                        "INSERT INTO users (name, enrollment, password, role) VALUES (?, ?, ?, ?)",
-                        (name, enrollment, "1234", "student")
-                    )
-                except:
-                    pass
-
-        print("✅ Students inserted")
-
-    # -------- ADD TEACHER SAFELY --------
+    # TEACHER
     c.execute(
-        "INSERT OR IGNORE INTO users (name, enrollment, password, role) VALUES (?, ?, ?, ?)",
-        ("Teacher", "T001", "admin123", "teacher")
+        "INSERT OR IGNORE INTO users VALUES (NULL, 'Teacher', 'T001', 'admin123', 'teacher')"
     )
 
     conn.commit()
     conn.close()
-
 
 # -------- ROUTES --------
 @app.route('/')
@@ -95,161 +90,134 @@ def student():
 def teacher():
     return render_template('teacher.html')
 
-
 # -------- LOGIN --------
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
 
-    enrollment = data.get('enrollment')
-    password = data.get('password')
-    role = data.get('role')
-
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
     c.execute("SELECT * FROM users WHERE enrollment=? AND password=? AND role=?",
-              (enrollment, password, role))
+              (data['enrollment'], data['password'], data['role']))
 
     user = c.fetchone()
     conn.close()
 
     if user:
         return jsonify({
-            "redirect": "/student" if role == "student" else "/teacher",
+            "redirect": "/student" if data['role'] == "student" else "/teacher",
             "name": user[1]
         })
     else:
         return jsonify({"message": "Invalid login ❌"})
 
-
-# -------- CHANGE PASSWORD --------
-@app.route('/change_password', methods=['POST'])
-def change_password():
-    data = request.json
-
-    enrollment = data.get('enrollment')
-    old_password = data.get('old_password')
-    new_password = data.get('new_password')
-
-    conn = sqlite3.connect("database.db")
-    c = conn.cursor()
-
-    c.execute("SELECT * FROM users WHERE enrollment=? AND password=?",
-              (enrollment, old_password))
-
-    if not c.fetchone():
-        return jsonify({"message": "Incorrect old password ❌"})
-
-    c.execute("UPDATE users SET password=? WHERE enrollment=?",
-              (new_password, enrollment))
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({"message": "Password changed ✅"})
-
-
-# -------- ATTENDANCE CONTROL (NEW 🔥) --------
+# -------- ATTENDANCE --------
 @app.route('/toggle_attendance', methods=['POST'])
-def toggle_attendance():
+def toggle():
     global attendance_enabled
     attendance_enabled = not attendance_enabled
+    return jsonify({"status": "ON" if attendance_enabled else "OFF"})
 
-    return jsonify({
-        "status": "ON" if attendance_enabled else "OFF"
-    })
-
-
-# -------- MARK ATTENDANCE --------
 @app.route('/mark_attendance', methods=['POST'])
-def mark_attendance():
-    global attendance_enabled
-
+def mark():
     if not attendance_enabled:
-        return jsonify({"message": "Attendance is OFF ❌"})
+        return jsonify({"message": "Attendance OFF ❌"})
 
     data = request.json
-    name = data.get('name')
+    name = data['name']
 
     now = datetime.now()
-    date = now.strftime("%Y-%m-%d")
-    time = now.strftime("%H:%M:%S")
 
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
-    c.execute("SELECT * FROM attendance WHERE name=? AND date=?", (name, date))
-    if c.fetchone():
-        return jsonify({"message": "Already marked today ❌"})
-
     c.execute("INSERT INTO attendance (name, date, time) VALUES (?, ?, ?)",
-              (name, date, time))
+              (name, now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")))
 
     conn.commit()
     conn.close()
 
     return jsonify({"message": "Attendance Marked ✅"})
 
-
-# -------- GET ATTENDANCE --------
 @app.route('/get_attendance')
 def get_attendance():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
-
     c.execute("SELECT * FROM attendance")
     data = c.fetchall()
-
     conn.close()
     return jsonify(data)
 
+# -------- STUDENTS --------
+@app.route('/get_students')
+def get_students():
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE role='student'")
+    data = c.fetchall()
+    conn.close()
+    return jsonify(data)
+
+# -------- MARKS --------
+@app.route('/save_marks', methods=['POST'])
+def save_marks():
+    data = request.json
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("INSERT INTO marks (name, mid, end) VALUES (?, ?, ?)",
+              (data['name'], int(data['mid']), int(data['end'])))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Marks Saved ✅"})
+
+@app.route('/get_marks')
+def get_marks():
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    c.execute("SELECT * FROM marks")
+    data = c.fetchall()
+    conn.close()
+    return jsonify(data)
 
 # -------- FILE UPLOAD --------
-ALLOWED_EXTENSIONS = {'pdf', 'docx', 'ppt', 'pptx'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
 @app.route('/upload', methods=['POST'])
 def upload():
     file = request.files['file']
-
-    if not file or not allowed_file(file.filename):
-        return jsonify({"message": "Only PDF/DOCX allowed ❌"})
-
     filename = file.filename
-    file.save("uploads/" + filename)
 
-    name = request.form.get("name", "Unknown")
+    file.save("uploads/" + filename)
 
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
     c.execute("INSERT INTO assignments (name, filename) VALUES (?, ?)",
-              (name, filename))
+              (request.form.get("name"), filename))
 
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "File Uploaded ✅"})
-
+    return jsonify({"message": "Uploaded ✅"})
 
 @app.route('/get_assignments')
 def get_assignments():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
-
     c.execute("SELECT * FROM assignments")
     data = c.fetchall()
-
     conn.close()
     return jsonify(data)
 
+@app.route('/uploads/<filename>')
+def files(filename):
+    return send_from_directory("uploads", filename)
 
 # -------- RUN --------
 if __name__ == '__main__':
     init_db()
-    insert_from_csv()
+    insert_students()
     app.run(debug=True)
