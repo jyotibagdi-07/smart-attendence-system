@@ -111,16 +111,64 @@ datasets:[{data:[present,total-present]}]
 
 fetch(`/get_assignments?name=${name}&role=student`)
 .then(r=>r.json())
-.then(d=>document.getElementById("assignValue").innerText=d.length);
+.then(d=>{
 
-fetch("/get_marks").then(r=>r.json()).then(data=>{
-let m=data.find(x=>x[1]===name);
-if(m){
-document.getElementById("marksValue").innerText=m[2]+m[3];
+document.getElementById("assignValue").innerText=d.length;
+
+if(window.assignChart) window.assignChart.destroy();
+
+window.assignChart = new Chart(
+document.getElementById("assignChart"),
+{
+type:"doughnut",
+data:{
+labels:["Submitted","Pending"],
+datasets:[{
+data:[d.length, 5 - d.length],
+backgroundColor:["#4caf50","#e0e0e0"]
+}]
 }
 });
+
+});
+
+fetch("/get_marks")
+.then(r=>r.json())
+.then(data=>{
+
+let m = data.find(x=>x[1]===name);
+
+let mid = 0;
+let end = 0;
+
+if(m){
+   mid = m[2];
+   end = m[3];
 }
 
+document.getElementById("marksValue").innerText = mid + end;
+
+if(window.barChart) window.barChart.destroy();
+
+window.barChart = new Chart(document.getElementById("barChart"),{
+type:"bar",
+data:{
+labels:["Mid Exam","End Exam"],
+datasets:[{
+label:"Marks",
+data:[mid,end],
+backgroundColor:["#5f5fff","#ff9800"]
+}]
+},
+options:{
+responsive:true,
+scales:{y:{beginAtZero:true,max:100}}
+}
+});
+});
+
+}
+ // ✅ THIS WAS MISSING
 // ATTENDANCE
 function loadAttendance(){
 fetch("/get_attendance").then(r=>r.json()).then(data=>{
@@ -186,6 +234,22 @@ alert(d.message);
 loadAssignments();
 });
 }
+window.uploadNotes=function(){
+
+let file=document.getElementById("notesFile").files[0];
+
+let fd=new FormData();
+fd.append("file",file);
+fd.append("type","notes");
+
+fetch("/upload_notes",{method:"POST",body:fd})
+.then(r=>r.json())
+.then(d=>{
+alert(d.message);
+loadNotes();
+});
+
+}
 
 // NOTES
 function loadNotes(){
@@ -219,7 +283,7 @@ list.innerHTML+=`<li>${a[2]} - ${a[1]}</li>`;
 
 // AUTO LOAD
 document.addEventListener("DOMContentLoaded",function(){
-showSection("dashboard");
+setTimeout(()=>showSection("dashboard"),100);
 });
 }
 

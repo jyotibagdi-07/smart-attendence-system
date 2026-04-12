@@ -186,6 +186,39 @@ def get_attendance():
     data = c.fetchall()
     conn.close()
     return jsonify(data)
+# ---------------- MARKS ----------------
+@app.route('/add_marks', methods=['POST'])
+def add_marks():
+    data = request.json
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("INSERT INTO marks (name, mid, end) VALUES (?, ?, ?)",
+              (data['name'], data['mid'], data['end']))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Marks saved ✅"})
+
+
+@app.route('/get_marks')
+def get_marks():
+    name = request.args.get("name")
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    if name:
+        c.execute("SELECT * FROM marks WHERE name=?", (name,))
+    else:
+        c.execute("SELECT * FROM marks")
+
+    data = c.fetchall()
+    conn.close()
+
+    return jsonify(data)
 
 
 # ---------------- STUDENTS ----------------
@@ -328,4 +361,4 @@ if __name__ == '__main__':
     init_db()
     insert_students()
     insert_teachers()
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

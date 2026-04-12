@@ -194,7 +194,12 @@ body {
 }
 
 .charts .card {
-  flex: 1;
+flex:1;
+height:320px;
+}
+
+.charts canvas{
+max-height:250px;
 }
 
 /* ================= BUTTON ================= */

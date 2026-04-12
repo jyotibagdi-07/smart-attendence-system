@@ -48,7 +48,15 @@
 
 <div class="charts">
 <div class="card"><canvas id="pieChart"></canvas></div>
-<div class="card"><canvas id="barChart"></canvas></div>
+<div class="card">
+<h3>Marks Performance</h3>
+<canvas id="barChart"></canvas>
+</div>
+
+<div class="card">
+<h3>Assignment Submissions</h3>
+<canvas id="assignChart"></canvas>
+</div>
 </div>
 </div>
 
@@ -74,9 +82,18 @@
 <!-- NOTES -->
 <div id="notesSection" class="section" style="display:none;">
 <div class="card">
+
+<h3>Upload Notes</h3>
+
+<input type="file" id="notesFile">
+<button onclick="uploadNotes()">Upload</button>
+
+<h3>Your Notes</h3>
 <ul id="notesList"></ul>
+
 </div>
 </div>
+
 
 <!-- ANNOUNCEMENTS -->
 <div id="announcementsSection" class="section" style="display:none;">
