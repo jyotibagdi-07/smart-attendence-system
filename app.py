@@ -1,17 +1,17 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
-import sqlite3, os, csv
+import sqlite3, os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
+# ================= GLOBAL =================
 attendance_enabled = True
 
-# create uploads folder
-if not os.path.exists("uploads"):
-    os.makedirs("uploads")
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ---------------- DATABASE ----------------
+# ================= DB INIT =================
 def init_db():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
@@ -24,24 +24,22 @@ def init_db():
         role TEXT
     )''')
 
-    c.execute('''CREATE TABLE IF NOT EXISTS attendance (
+    c.execute('''CREATE TABLE IF NOT EXISTS class_schedule (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT UNIQUE
+    )''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS class_attendance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
-        date TEXT,
-        time TEXT
+        class_date TEXT
     )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS assignments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        filename TEXT
-    )''')
-
-    c.execute('''CREATE TABLE IF NOT EXISTS marks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        mid INTEGER,
-        end INTEGER
+        title TEXT,
+        filename TEXT,
+        time TEXT
     )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS notes (
@@ -53,69 +51,41 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS announcements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         message TEXT,
-        date TEXT
+        time TEXT
+    )''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS marks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        mid INTEGER,
+        end INTEGER,
+        cap INTEGER,
+        lab INTEGER
     )''')
 
     conn.commit()
     conn.close()
 
 
-# ---------------- LOAD CSV ----------------
-def insert_students():
-    conn = sqlite3.connect("database.db")
-    c = conn.cursor()
-
-    with open("students.csv", newline='', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-
-        for row in reader:
-            try:
-                c.execute(
-                    "INSERT INTO users (name, enrollment, password, role) VALUES (?, ?, ?, ?)",
-                    (row['name'], row['enrollment'], "1234", "student")
-                )
-            except:
-                pass
-
-    conn.commit()
-    conn.close()
-
-
-def insert_teachers():
-    conn = sqlite3.connect("database.db")
-    c = conn.cursor()
-
-    with open("teachers.csv", newline='', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-
-        for row in reader:
-            try:
-                c.execute(
-                    "INSERT INTO users (name, enrollment, password, role) VALUES (?, ?, ?, ?)",
-                    (row['username'], row['username'], row['password'], "teacher")
-                )
-            except:
-                pass
-
-    conn.commit()
-    conn.close()
-
-
-# ---------------- ROUTES ----------------
+# ================= ROUTES =================
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template("index.html")
 
 @app.route('/student')
 def student():
-    return render_template('student.html')
+    return render_template("student.html")
 
 @app.route('/teacher')
 def teacher():
-    return render_template('teacher.html')
+    return render_template("teacher.html")
+
+@app.route('/change-password')
+def change_password():
+    return render_template("change_password.html")
 
 
-# ---------------- LOGIN ----------------
+# ================= LOGIN =================
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -123,74 +93,142 @@ def login():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
-    c.execute("SELECT * FROM users WHERE enrollment=? AND password=? AND role=?",
-              (data['enrollment'], data['password'], data['role']))
+    c.execute("""
+        SELECT * FROM users 
+        WHERE enrollment=? AND password=? AND role=?
+    """, (data['enrollment'], data['password'], data['role']))
 
     user = c.fetchone()
     conn.close()
 
     if user:
         return jsonify({
-            "redirect": "/student" if data['role']=="student" else "/teacher",
-            "name": user[1]
+            "name": user[1],
+            "redirect": "/teacher" if data['role']=="teacher" else "/student"
         })
-    return jsonify({"message": "Invalid login ❌"})
+
+    return jsonify({"message": "Invalid credentials ❌"})
 
 
-# ---------------- ATTENDANCE ----------------
+# ================= ATTENDANCE CONTROL =================
 @app.route('/toggle_attendance', methods=['POST'])
-def toggle():
+def toggle_attendance():
     global attendance_enabled
     attendance_enabled = not attendance_enabled
-    return jsonify({"status": "ON" if attendance_enabled else "OFF"})
-
-
-@app.route('/attendance_status')
-def attendance_status():
     return jsonify({"enabled": attendance_enabled})
 
 
-@app.route('/mark_attendance', methods=['POST'])
-def mark_attendance():
-    if not attendance_enabled:
-        return jsonify({"message": "Attendance Closed ❌"})
+@app.route('/attendance_flag')
+def attendance_flag():
+    return jsonify({"enabled": attendance_enabled})
+
+
+# ================= CLASS SCHEDULE =================
+@app.route('/schedule_class', methods=['POST'])
+def schedule_class():
 
     data = request.json
-    name = data['name']
-    today = datetime.now().strftime("%Y-%m-%d")
+    date = data['date']
 
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
-    c.execute("SELECT * FROM attendance WHERE name=? AND date=?", (name, today))
-    if c.fetchone():
-        conn.close()
-        return jsonify({"message": "Already marked today ⚠️"})
-
-    now = datetime.now()
-
-    c.execute("INSERT INTO attendance (name, date, time) VALUES (?, ?, ?)",
-              (name, today, now.strftime("%H:%M:%S")))
+    c.execute("INSERT OR IGNORE INTO class_schedule (date) VALUES (?)", (date,))
 
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "Attendance Marked ✅"})
+    return jsonify({"message": "Class scheduled ✅"})
 
 
-@app.route('/get_attendance')
-def get_attendance():
+@app.route('/get_schedule')
+def get_schedule():
+
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
-    c.execute("SELECT * FROM attendance")
+
+    c.execute("SELECT * FROM class_schedule ORDER BY date DESC")
     data = c.fetchall()
+
     conn.close()
     return jsonify(data)
 
 
-# ---------------- STUDENTS ----------------
+# ================= CLASS ATTENDANCE =================
+@app.route('/mark_class_attendance', methods=['POST'])
+def mark_class_attendance():
+
+    global attendance_enabled
+
+    if not attendance_enabled:
+        return jsonify({"status":"error","message": "Attendance is OFF ❌"})
+
+    data = request.json
+    name = data['name']
+    class_date = data['date']
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM class_schedule WHERE date=?", (class_date,))
+    if not c.fetchone():
+        return jsonify({"status":"error","message": "No class scheduled ❌"})
+
+    c.execute("""
+        SELECT * FROM class_attendance 
+        WHERE name=? AND class_date=?
+    """, (name, class_date))
+
+    if c.fetchone():
+        return jsonify({"status":"warning","message": "Already marked ⚠️"})
+
+    c.execute("""
+        INSERT INTO class_attendance (name, class_date)
+        VALUES (?, ?)
+    """, (name, class_date))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status":"success","message": "Attendance marked ✅"})
+
+
+# ✅🔥 NEW ROUTE (CRITICAL FIX)
+@app.route('/get_my_attendance/<name>')
+def get_my_attendance(name):
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT name, class_date 
+        FROM class_attendance 
+        WHERE name=?
+    """, (name,))
+
+    data = c.fetchall()
+
+    conn.close()
+    return jsonify(data)
+
+
+@app.route('/get_class_attendance')
+def get_class_attendance():
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM class_attendance")
+    data = c.fetchall()
+
+    conn.close()
+    return jsonify(data)
+
+
+# ================= STUDENTS =================
 @app.route('/get_students')
 def get_students():
+
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
@@ -201,131 +239,144 @@ def get_students():
     return jsonify(data)
 
 
-# ---------------- CHANGE PASSWORD ----------------
-@app.route('/change_password', methods=['POST'])
-def change_password():
-    data = request.json
+# ================= ASSIGNMENTS =================
+@app.route('/upload_assignment', methods=['POST'])
+def upload_assignment():
 
-    conn = sqlite3.connect("database.db")
-    c = conn.cursor()
-
-    c.execute("SELECT password FROM users WHERE enrollment=?", (data['enrollment'],))
-    user = c.fetchone()
-
-    if not user or user[0] != data['old']:
-        return jsonify({"message": "Wrong old password ❌"})
-
-    c.execute("UPDATE users SET password=? WHERE enrollment=?",
-              (data['new'], data['enrollment']))
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({"message": "Password Updated ✅"})
-
-
-# ---------------- ASSIGNMENTS ----------------
-@app.route('/upload', methods=['POST'])
-def upload():
     file = request.files['file']
-    name = request.form.get("name")
+    title = request.form['title']
+    desc = request.form.get('desc', '')
 
     filename = secure_filename(file.filename)
-    file.save(os.path.join("uploads", filename))
+    file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
-    c.execute("INSERT INTO assignments (name, filename) VALUES (?, ?)", (name, filename))
+
+    c.execute("""
+        INSERT INTO assignments (title, filename, time)
+        VALUES (?, ?, ?)
+    """, (title + " - " + desc, filename, time_now))
 
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "Uploaded ✅"})
+    return jsonify({"message": "Assignment uploaded ✅"})
 
 
 @app.route('/get_assignments')
 def get_assignments():
-    name = request.args.get("name")
-    role = request.args.get("role")
 
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
-    if role == "teacher":
-        c.execute("SELECT * FROM assignments")
-    else:
-        c.execute("SELECT * FROM assignments WHERE name=?", (name,))
-
+    c.execute("SELECT * FROM assignments ORDER BY id DESC")
     data = c.fetchall()
-    conn.close()
 
+    conn.close()
     return jsonify(data)
 
 
-# ---------------- NOTES ----------------
-@app.route('/upload_notes', methods=['POST'])
-def upload_notes():
-    file = request.files['file']
-    title = request.form.get("title")
-
-    filename = secure_filename(file.filename)
-    file.save(os.path.join("uploads", filename))
-
-    conn = sqlite3.connect("database.db")
-    c = conn.cursor()
-    c.execute("INSERT INTO notes (title, filename) VALUES (?, ?)", (title, filename))
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({"message": "Notes uploaded ✅"})
-
-
+# ================= NOTES =================
 @app.route('/get_notes')
 def get_notes():
+
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
+
     c.execute("SELECT * FROM notes")
     data = c.fetchall()
+
     conn.close()
     return jsonify(data)
 
 
-# ---------------- ANNOUNCEMENTS ----------------
+# ================= ANNOUNCEMENTS =================
 @app.route('/add_announcement', methods=['POST'])
 def add_announcement():
+
     data = request.json
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
-    c.execute("INSERT INTO announcements (message, date) VALUES (?, ?)",
-              (data['message'], datetime.now().strftime("%Y-%m-%d")))
+
+    c.execute("""
+        INSERT INTO announcements (message, time)
+        VALUES (?, ?)
+    """, (data['message'], time_now))
 
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "Announcement added ✅"})
+    return jsonify({"message": "Announcement posted ✅"})
 
 
 @app.route('/get_announcements')
 def get_announcements():
+
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
+
     c.execute("SELECT * FROM announcements ORDER BY id DESC")
     data = c.fetchall()
+
     conn.close()
     return jsonify(data)
 
 
-# ---------------- FILE SERVE ----------------
+# ================= MARKS =================
+@app.route('/save_marks', methods=['POST'])
+def save_marks():
+
+    data = request.json
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM marks WHERE name=?", (data['name'],))
+    exists = c.fetchone()
+
+    if exists:
+        c.execute("""
+            UPDATE marks 
+            SET mid=?, end=?, cap=?, lab=? 
+            WHERE name=?
+        """, (data['mid'], data['end'], data['cap'], data['lab'], data['name']))
+    else:
+        c.execute("""
+            INSERT INTO marks (name, mid, end, cap, lab)
+            VALUES (?, ?, ?, ?, ?)
+        """, (data['name'], data['mid'], data['end'], data['cap'], data['lab']))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Marks saved ✅"})
+
+
+@app.route('/get_marks')
+def get_marks():
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM marks")
+    data = c.fetchall()
+
+    conn.close()
+    return jsonify(data)
+
+
+# ================= FILES =================
 @app.route('/uploads/<filename>')
-def files(filename):
-    return send_from_directory("uploads", filename)
+def uploads(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 
-# ---------------- RUN ----------------
+# ================= RUN =================
 if __name__ == '__main__':
     init_db()
-    insert_students()
-    insert_teachers()
     app.run(debug=True)
