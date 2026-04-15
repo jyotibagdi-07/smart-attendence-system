@@ -37,6 +37,26 @@ function handleResponse(d){
 
     showMsg(msg, color);
 }
+function loadSubmissions(){
+
+fetch("/get_submissions")
+.then(r=>r.json())
+.then(data=>{
+
+let list = document.getElementById("assignList");
+list.innerHTML = "";
+
+data.forEach(s=>{
+    list.innerHTML += `
+    <li>
+        <b>${s[1]}</b> submitted <b>${s[2]}</b><br>
+        <small>${s[4]}</small><br>
+        <a href="/uploads/${s[3]}" target="_blank">View</a>
+    </li>`;
+});
+
+});
+}
 
 // ================= NAVIGATION =================
 function showTeacher(section){
@@ -53,9 +73,14 @@ function showTeacher(section){
 
     if(section==="students") loadStudents();
     if(section==="schedule") loadSchedule();
-    if(section==="assignments") loadAssignments();
+    if(section==="assignments"){
+    loadAssignments();
+    loadSubmissions();
+}
     if(section==="notes") loadNotes();
     if(section==="marks") loadMarks();
+    loadTeacherNotifications();
+    loadTeacherDashboard();
 }
 
 // ================= ATTENDANCE =================
@@ -383,4 +408,52 @@ fetch("/save_marks",{
 function logout(){
 localStorage.clear();
 location.href="/";
+}
+function loadTeacherNotifications(){
+fetch("/get_announcements")
+.then(r=>r.json())
+.then(data=>{
+let list = document.getElementById("teacherNotif");
+if(!list) return;
+
+list.innerHTML = "";
+
+data.slice(0,3).forEach(a=>{
+    list.innerHTML += `<li>📢 ${a[1]}</li>`;
+});
+});
+}
+function loadTeacherDashboard(){
+
+fetch("/teacher_dashboard_data")
+.then(r=>r.json())
+.then(data=>{
+
+// 📊 stats
+document.getElementById("totalStudents").innerText = data.students;
+document.getElementById("totalAssign").innerText = data.assignments;
+document.getElementById("totalNotes").innerText = data.notes;
+
+// 📂 recent submissions
+let list = document.getElementById("recentSubmissions");
+if(!list) return;
+
+list.innerHTML = "";
+
+if(data.submissions.length === 0){
+    list.innerHTML = "<li>No submissions</li>";
+    return;
+}
+
+data.submissions.forEach(s=>{
+    list.innerHTML += `
+        <li>
+            👤 ${s[0]} <br>
+            📂 ${s[1]} <br>
+            <small>${s[2]}</small>
+        </li>
+    `;
+});
+
+});
 }

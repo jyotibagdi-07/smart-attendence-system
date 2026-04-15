@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
-import sqlite3, os
+import sqlite3, os, csv
 from datetime import datetime
 from werkzeug.utils import secure_filename
 
@@ -16,6 +16,7 @@ def init_db():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
+    # ================= USERS =================
     c.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
@@ -24,6 +25,7 @@ def init_db():
         role TEXT
     )''')
 
+    # ================= CLASS =================
     c.execute('''CREATE TABLE IF NOT EXISTS class_schedule (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT UNIQUE
@@ -35,6 +37,7 @@ def init_db():
         class_date TEXT
     )''')
 
+    # ================= ASSIGNMENTS =================
     c.execute('''CREATE TABLE IF NOT EXISTS assignments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
@@ -42,18 +45,22 @@ def init_db():
         time TEXT
     )''')
 
+    # ================= NOTES =================
     c.execute('''CREATE TABLE IF NOT EXISTS notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
-        filename TEXT
+        filename TEXT,
+        time TEXT
     )''')
 
+    # ================= ANNOUNCEMENTS =================
     c.execute('''CREATE TABLE IF NOT EXISTS announcements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         message TEXT,
         time TEXT
     )''')
 
+    # ================= MARKS =================
     c.execute('''CREATE TABLE IF NOT EXISTS marks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
@@ -62,6 +69,53 @@ def init_db():
         cap INTEGER,
         lab INTEGER
     )''')
+
+    # ================= SUBMISSIONS =================
+    c.execute('''CREATE TABLE IF NOT EXISTS submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_name TEXT,
+        assignment_title TEXT,
+        filename TEXT,
+        time TEXT
+    )''')
+
+    # ================= LOAD USERS FROM CSV =================
+    # students
+    with open("students.csv", "r") as file:
+        reader = csv.reader(file)
+        next(reader)
+
+        for row in reader:
+            if len(row) < 3:
+                continue
+
+            name = row[0]
+            enrollment = row[1]
+            password = row[2]
+
+            c.execute("""
+                INSERT OR IGNORE INTO users (name, enrollment, password, role)
+                VALUES (?, ?, ?, ?)
+            """, (name, enrollment, password, "student"))
+
+    # teachers
+    with open("teacher.csv", "r") as file:
+        reader = csv.reader(file)
+        next(reader)
+
+        for row in reader:
+            if len(row) < 4:
+                continue
+
+            name = row[0]
+            enrollment = row[1]
+            password = row[2]
+            role = row[3]
+
+            c.execute("""
+                INSERT OR IGNORE INTO users (name, enrollment, password, role)
+                VALUES (?, ?, ?, ?)
+            """, (name, enrollment, password, role))
 
     conn.commit()
     conn.close()
@@ -277,16 +331,72 @@ def get_assignments():
 
     conn.close()
     return jsonify(data)
+@app.route('/get_submissions')
+def get_submissions():
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM submissions ORDER BY id DESC")
+    data = c.fetchall()
+
+    conn.close()
+    return jsonify(data)
+@app.route('/submit_assignment', methods=['POST'])
+def submit_assignment():
+
+    file = request.files['file']
+    student = request.form['name']
+    title = request.form['title']
+
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("""
+        INSERT INTO submissions (student_name, assignment_title, filename, time)
+        VALUES (?, ?, ?, ?)
+    """, (student, title, filename, time_now))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Submitted ✅"})
 
 
 # ================= NOTES =================
+@app.route('/upload_notes', methods=['POST'])
+def upload_notes():
+
+    file = request.files['file']
+    title = request.form['title']
+
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("INSERT INTO notes (title, filename, time) VALUES (?, ?, ?)",
+              (title, filename, time_now))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Notes uploaded ✅"})
 @app.route('/get_notes')
 def get_notes():
 
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
-    c.execute("SELECT * FROM notes")
+    c.execute("SELECT * FROM notes ORDER BY id DESC")
     data = c.fetchall()
 
     conn.close()
@@ -375,8 +485,43 @@ def get_marks():
 def uploads(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+@app.route('/teacher_dashboard_data')
+def teacher_dashboard_data():
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    # ✅ FIX 1: correct students table
+    c.execute("SELECT COUNT(*) FROM users WHERE role='student'")
+    total_students = c.fetchone()[0]
+
+    # ✅ assignments (correct already)
+    c.execute("SELECT COUNT(*) FROM assignments")
+    total_assignments = c.fetchone()[0]
+
+    # ✅ notes (correct already)
+    c.execute("SELECT COUNT(*) FROM notes")
+    total_notes = c.fetchone()[0]
+
+    # ✅ FIX 2: correct column names
+    c.execute("""
+        SELECT student_name, assignment_title, time 
+        FROM submissions 
+        ORDER BY time DESC 
+        LIMIT 5
+    """)
+    submissions = c.fetchall()
+
+    conn.close()
+
+    return jsonify({
+        "students": total_students,
+        "assignments": total_assignments,
+        "notes": total_notes,
+        "submissions": submissions
+    })
 
 # ================= RUN =================
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    app.run(debug=True,port=5002)

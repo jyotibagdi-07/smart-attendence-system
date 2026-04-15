@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadNotes();
     loadAnnouncements();
     loadMarks();
+    loadNotifications();
 });
 
 // ================= UI MESSAGE =================
@@ -64,6 +65,11 @@ function showSection(section){
     if(section==="assignments") loadAssignments();
     if(section==="notes") loadNotes();
     if(section==="announcements") loadAnnouncements();
+    if(section==="dashboard"){
+    setTimeout(()=>{
+        loadMarks();
+    }, 300);
+}
 
     // ✅ NEW
     if(section==="marks") loadMarksTable();
@@ -127,6 +133,7 @@ Promise.all([
     });
 
     let percent = Math.round((present / total) * 100);
+    loadAttendanceGraph(percent);
 
     let fill = document.getElementById("progressFill");
     if(fill) fill.style.width = percent + "%";
@@ -182,62 +189,69 @@ fetch("/attendance_flag")
 });
 }
 
-// ================= ASSIGNMENTS =================
 function loadAssignments(){
 
-fetch("/get_assignments")
-.then(r=>r.json())
-.then(data=>{
+let name = localStorage.getItem("name");
 
+Promise.all([
+    fetch("/get_assignments").then(r=>r.json()),
+    fetch("/get_submissions").then(r=>r.json())
+])
+.then(([assignments, submissions])=>{
 let val = document.getElementById("assignValue");
-if(val) val.innerText = data.length;
+if(val) val.innerText = assignments.length;
+// ✅ ADD THIS HERE
+let total = assignments.length;
+let done = submissions.filter(s => s[1] === name).length;
+
+let progress = document.getElementById("assignProgress");
+if(progress){
+    progress.innerHTML = `
+        <b>${done} / ${total}</b><br>
+        <small>Assignments Submitted</small>
+    `;
+}
 
 let list = document.getElementById("assignmentList");
 if(!list) return;
 
 list.innerHTML = "";
 
-data.forEach(a=>{
+assignments.forEach(a=>{
+
+    let submitted = submissions.find(s =>
+        s[1] === name && s[2] === a[1]
+    );
+
     list.innerHTML += `
     <li>
         <b>${a[1]}</b><br>
         <small>${a[3]}</small><br>
+
         <a href="/uploads/${a[2]}" target="_blank">View</a>
+
+        <br><br>
+
+        ${
+            submitted
+            ?
+            `<span style="color:green;font-weight:bold;">
+                ✅ Submitted (${submitted[4]})
+            </span>`
+            :
+            `<form onsubmit="submitAssignment(event,'${a[1]}')">
+                <input type="file" required>
+                <button>Submit</button>
+            </form>`
+        }
+
+        <hr>
     </li>`;
 });
+
 })
 .catch(()=>{
-    showMsg("Assignments load failed ❌","red");
-});
-}
-
-// ================= NOTES =================
-function loadNotes(){
-
-fetch("/get_notes")
-.then(r=>r.json())
-.then(data=>{
-
-let list = document.getElementById("notesList");
-if(!list) return;
-
-list.innerHTML = "";
-
-if(data.length === 0){
-    list.innerHTML = "<p>No notes available</p>";
-    return;
-}
-
-data.forEach(n=>{
-    list.innerHTML += `
-    <li>
-        <b>${n[1]}</b><br>
-        <a href="/uploads/${n[2]}" target="_blank">Open</a>
-    </li>`;
-});
-})
-.catch(()=>{
-    showMsg("Notes load failed ❌","red");
+    alert("Assignments load failed ❌");
 });
 }
 
@@ -266,15 +280,19 @@ data.forEach(a=>{
 });
 }
 
-// ================= MARKS (DASHBOARD TOTAL) =================
+
+
+// ================= MARKS TABLE (NEW) =================
 function loadMarks(){
 
 fetch("/get_marks")
 .then(r=>r.json())
 .then(data=>{
+     let name = localStorage.getItem("name");
 
-let name = localStorage.getItem("name");
-let student = data.find(m => m[1] === name);
+console.log("NAME:", name);
+console.log("DATA:", data);
+let student = data.find(m => m[1].trim() === name.trim());
 
 let val = document.getElementById("marksValue");
 
@@ -283,21 +301,147 @@ if(!student){
     return;
 }
 
-let total =
-    (student[2] || 0) +
-    (student[3] || 0) +
-    (student[4] || 0) +
-    (student[5] || 0);
+let mid = student[2] || 0;
+let end = student[3] || 0;
+let cap = student[4] || 0;
+let lab = student[5] || 0;
+
+let total = mid + end + cap + lab;
 
 if(val) val.innerText = total;
+
+// ✅ ADD THIS (IMPORTANT)
+setTimeout(() => {
+    loadMarksGraph(mid, end, cap, lab);
+}, 200);
+console.log("GRAPH DATA:", mid, end, cap, lab);
+const ctx = document.getElementById("marksChart");
+
+if(!ctx){
+    console.log("Canvas not found ❌");
+    return;
+}
 
 })
 .catch(()=>{
     showMsg("Marks load failed ❌","red");
 });
 }
+function submitAssignment(e, title){
 
-// ================= MARKS TABLE (NEW) =================
+e.preventDefault();
+
+let file = e.target.querySelector("input").files[0];
+let name = localStorage.getItem("name");
+
+if(!file){
+    alert("Please select file ❌");
+    return;
+}
+
+let fd = new FormData();
+fd.append("file", file);
+fd.append("name", name);
+fd.append("title", title);
+
+fetch("/submit_assignment",{
+    method:"POST",
+    body:fd
+})
+.then(r=>r.json())
+.then(d=>{
+    alert(d.message);
+
+    // ✅ reload assignments after submit
+    loadAssignments();
+})
+.catch(()=>{
+    alert("Submission failed ❌");
+});
+
+}
+
+// ================= LOGOUT =================
+function logout(){
+    localStorage.clear();
+    location.href = "/";
+}
+// ================= NOTES =================
+function loadNotes(){
+
+fetch("/get_notes")
+.then(r=>r.json())
+.then(data=>{
+
+let list = document.getElementById("notesList");
+if(!list) return;
+
+list.innerHTML = "";
+
+if(data.length === 0){
+    list.innerHTML = "<p>No notes available</p>";
+    return;
+}
+
+data.forEach(n=>{
+    list.innerHTML += `
+    <li>
+        <b>${n[1]}</b><br>
+        <small>Uploaded: ${n[3]}</small><br>
+        <a href="/uploads/${n[2]}" target="_blank">Download</a>
+    </li>`;
+});
+
+})
+.catch(()=>{
+    showMsg("Notes load failed ❌","red");
+});
+}
+// ================= ATTENDANCE GRAPH =================
+function loadAttendanceGraph(percent){
+
+const ctx = document.getElementById("attendanceChart");
+
+if(!ctx) return;
+
+if(window.attChart){
+    window.attChart.destroy();
+}
+
+window.attChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+        labels: ["Present", "Absent"],
+        datasets: [{
+            data: [percent, 100 - percent],
+            backgroundColor: ["#00c6ff", "#ff6b6b"]
+        }]
+    }
+});
+}
+function loadMarksGraph(mid, end, cap, lab){
+
+const ctx = document.getElementById("marksChart");
+
+if(!ctx) return;
+
+// ✅ destroy previous graph
+if(window.marksChart){
+    window.marksChart.destroy();
+}
+
+window.marksChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+        labels: ["Mid", "End", "Cap", "Lab"],
+        datasets: [{
+            label: "Marks",
+            data: [mid, end, cap, lab],
+            backgroundColor: "#5f5fff"
+        }]
+    }
+});
+}
 function loadMarksTable(){
 
 fetch("/get_marks")
@@ -306,11 +450,12 @@ fetch("/get_marks")
 
 let name = localStorage.getItem("name");
 let table = document.getElementById("marksTable");
+
 if(!table) return;
 
 table.innerHTML = "";
 
-let student = data.find(m => m[1] === name);
+let student = data.find(m => m[1].trim() === name.trim());
 
 if(!student){
     table.innerHTML = "<tr><td colspan='2'>No marks available</td></tr>";
@@ -324,7 +469,6 @@ let lab = student[5] || 0;
 
 let total = mid + end + cap + lab;
 
-// ✅ VERTICAL TABLE
 table.innerHTML = `
 <tr><th>Name</th><td>${student[1]}</td></tr>
 <tr><th>Mid</th><td>${mid}</td></tr>
@@ -334,14 +478,22 @@ table.innerHTML = `
 <tr><th>Total</th><td><b>${total}</b></td></tr>
 `;
 
-})
-.catch(()=>{
-    showMsg("Marks table load failed ❌","red");
 });
 }
+function loadNotifications(){
 
-// ================= LOGOUT =================
-function logout(){
-    localStorage.clear();
-    location.href = "/";
+fetch("/get_announcements")
+.then(r=>r.json())
+.then(data=>{
+
+let list = document.getElementById("notifList");
+if(!list) return;
+
+list.innerHTML = "";
+
+data.slice(0,3).forEach(a=>{
+    list.innerHTML += `<li>📢 ${a[1]}</li>`;
+});
+
+});
 }
