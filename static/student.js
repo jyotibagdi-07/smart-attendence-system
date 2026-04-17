@@ -77,7 +77,13 @@ function showSection(section){
 
 // ================= DATE HELPER =================
 function getToday(){
-    return new Date().toISOString().split("T")[0];
+    let d = new Date();
+
+    let year = d.getFullYear();
+    let month = String(d.getMonth() + 1).padStart(2, '0');
+    let day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
 }
 
 // ================= ATTENDANCE =================
@@ -327,6 +333,7 @@ if(!ctx){
     showMsg("Marks load failed ❌","red");
 });
 }
+// ================= SUBMIT ASSIGNMENT (FIXED UI MESSAGE) =================
 function submitAssignment(e, title){
 
 e.preventDefault();
@@ -335,7 +342,7 @@ let file = e.target.querySelector("input").files[0];
 let name = localStorage.getItem("name");
 
 if(!file){
-    alert("Please select file ❌");
+    showMsg("Please select file ❌","red"); // ✅ FIXED
     return;
 }
 
@@ -350,13 +357,21 @@ fetch("/submit_assignment",{
 })
 .then(r=>r.json())
 .then(d=>{
-    alert(d.message);
 
-    // ✅ reload assignments after submit
-    loadAssignments();
+    // ✅ REPLACED alert WITH UI MESSAGE
+    handleResponse({
+        message: d.message,
+        status: d.message.includes("Submitted") ? "success" : "error"
+    });
+
+    // reload assignments
+    setTimeout(()=>{
+        loadAssignments();
+    }, 300);
+
 })
 .catch(()=>{
-    alert("Submission failed ❌");
+    showMsg("Submission failed ❌","red"); // ✅ FIXED
 });
 
 }

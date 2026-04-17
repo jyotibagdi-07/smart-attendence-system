@@ -521,6 +521,47 @@ def teacher_dashboard_data():
         "submissions": submissions
     })
 
+# ================= CHANGE PASSWORD (FIXED) =================
+@app.route('/change_password', methods=['POST'])
+def change_password_api():
+
+    data = request.json
+
+    enrollment = data.get('enrollment')
+    old_pass = data.get('old')
+    new_pass = data.get('new')
+
+    # ✅ validation
+    if not enrollment or not old_pass or not new_pass:
+        return jsonify({"message": "All fields required ❌"})
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    # ✅ check old password
+    c.execute("""
+        SELECT * FROM users 
+        WHERE enrollment=? AND password=?
+    """, (enrollment, old_pass))
+
+    user = c.fetchone()
+
+    if not user:
+        conn.close()
+        return jsonify({"message": "Old password incorrect ❌"})
+
+    # ✅ update password
+    c.execute("""
+        UPDATE users 
+        SET password=? 
+        WHERE enrollment=?
+    """, (new_pass, enrollment))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Password Updated ✅"})
+
 # ================= RUN =================
 if __name__ == '__main__':
     init_db()

@@ -457,3 +457,46 @@ data.submissions.forEach(s=>{
 
 });
 }
+function changePassword() {
+
+    let enrollment = localStorage.getItem("enrollment");
+    let oldPass = document.getElementById("oldPass").value.trim();
+    let newPass = document.getElementById("newPass").value.trim();
+
+    if(!oldPass || !newPass){
+        showToast("Fill all fields ❌", "#dc3545");
+        return;
+    }
+
+    fetch("/change_password", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            enrollment: enrollment,
+            old: oldPass,
+            new: newPass
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("msg").innerText = data.message;
+
+        let success = data.message.includes("Updated");
+
+        showToast(
+            data.message,
+            success ? "#28a745" : "#dc3545"
+        );
+
+        if(success){
+            setTimeout(() => {
+                localStorage.clear();
+                window.location.href = "/";
+            }, 1200);
+        }
+    })
+    .catch(()=>{
+        showToast("Server error ❌", "#dc3545");
+    });
+}
