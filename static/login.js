@@ -1,55 +1,65 @@
 //////////////////////////////////////////////////
-// LOGIN FUNCTION (FIXED CLEAN)
+// LOGIN UI FEEDBACK
 //////////////////////////////////////////////////
-function login(){
+function showMsg(msg, color = "green") {
+    let box = document.getElementById("sideMessage");
 
-let e = document.getElementById("enrollment").value.trim();
-let p = document.getElementById("password").value.trim();
-let r = document.getElementById("role").value;
+    if (!box) {
+        box = document.createElement("div");
+        box.id = "sideMessage";
+        box.className = "side-message";
+        document.body.appendChild(box);
+    }
 
-if(!e || !p){
-alert("Please fill all fields ❌");
-return;
+    box.innerText = msg;
+    box.style.background = color === "red" ? "#e74c3c" : "#2ecc71";
+    box.classList.add("show");
+
+    setTimeout(() => {
+        box.classList.remove("show");
+    }, 4000);
 }
 
-fetch("/login",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-enrollment:e,
-password:p,
-role:r
-})
-})
-.then(res=>res.json())
-.then(data=>{
+//////////////////////////////////////////////////
+// LOGIN FUNCTION
+//////////////////////////////////////////////////
+function login() {
+    let e = document.getElementById("enrollment").value.trim();
+    let p = document.getElementById("password").value.trim();
+    let r = document.getElementById("role").value;
 
-if(data.redirect){
+    if (!e || !p) {
+        showMsg("Please fill all fields ❌", "red");
+        return;
+    }
 
-// ✅ STORE USER DATA
-localStorage.setItem("name", data.name);
-localStorage.setItem("enrollment", e);
-localStorage.setItem("role", r);
-
-// ✅ REDIRECT
-window.location.href = data.redirect;
-
-}else{
-alert(data.message);
-}
-
-})
-.catch(err=>{
-console.error(err);
-alert("Server error ❌");
-});
+    fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrollment: e, password: p, role: r })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.redirect) {
+            localStorage.setItem("name", data.name);
+            localStorage.setItem("enrollment", e);
+            localStorage.setItem("role", r);
+            window.location.href = data.redirect;
+        } else {
+            showMsg(data.message || "Invalid credentials ❌", "red");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showMsg("Server error ❌", "red");
+    });
 }
 
 //////////////////////////////////////////////////
 // ENTER KEY SUPPORT
 //////////////////////////////////////////////////
-document.addEventListener("keydown", function(e){
-if(e.key === "Enter"){
-login();
-}
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        login();
+    }
 });

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
-import sqlite3, os
+import sqlite3, os, csv
 from datetime import datetime
 from werkzeug.utils import secure_filename
 
@@ -48,6 +48,16 @@ def init_db():
         filename TEXT
     )''')
 
+    c.execute('''CREATE TABLE IF NOT EXISTS submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        assignment_id INTEGER,
+        student_name TEXT,
+        student_enrollment TEXT,
+        filename TEXT,
+        time TEXT,
+        FOREIGN KEY (assignment_id) REFERENCES assignments (id)
+    )''')
+
     c.execute('''CREATE TABLE IF NOT EXISTS announcements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         message TEXT,
@@ -62,6 +72,24 @@ def init_db():
         cap INTEGER,
         lab INTEGER
     )''')
+
+    # Load data from CSV files
+    try:
+        # Load teachers
+        with open('teacher.csv', 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                c.execute("INSERT OR IGNORE INTO users (name, enrollment, password, role) VALUES (?, ?, ?, ?)",
+                         (row['name'], row['enrollment'], row['password'], row['role']))
+        
+        # Load students
+        with open('students.csv', 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                c.execute("INSERT OR IGNORE INTO users (name, enrollment, password, role) VALUES (?, ?, ?, 'student')",
+                         (row['name'], row['enrollment'], row['password']))
+    except FileNotFoundError:
+        pass  # CSV files might not exist
 
     conn.commit()
     conn.close()
@@ -279,7 +307,66 @@ def get_assignments():
     return jsonify(data)
 
 
+@app.route('/delete_assignment/<int:id>', methods=['DELETE'])
+def delete_assignment(id):
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    
+    # Get filename to delete file
+    c.execute("SELECT filename FROM assignments WHERE id=?", (id,))
+    result = c.fetchone()
+    if result:
+        filename = result[0]
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    
+    c.execute("DELETE FROM assignments WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"message": "Assignment deleted ✅"})
+
+
+@app.route('/edit_assignment/<int:id>', methods=['PUT'])
+def edit_assignment(id):
+    data = request.json
+    title = data.get('title')
+    
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    
+    c.execute("UPDATE assignments SET title=? WHERE id=?", (title, id))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"message": "Assignment updated ✅"})
+
+
 # ================= NOTES =================
+@app.route('/upload_notes', methods=['POST'])
+def upload_notes():
+
+    file = request.files['file']
+    title = request.form['title']
+
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("""
+        INSERT INTO notes (title, filename)
+        VALUES (?, ?)
+    """, (title, filename))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Notes uploaded ✅"})
+
+
 @app.route('/get_notes')
 def get_notes():
 
@@ -291,6 +378,158 @@ def get_notes():
 
     conn.close()
     return jsonify(data)
+
+
+@app.route('/delete_notes/<int:id>', methods=['DELETE'])
+def delete_notes(id):
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    
+    # Get filename to delete file
+    c.execute("SELECT filename FROM notes WHERE id=?", (id,))
+    result = c.fetchone()
+    if result:
+        filename = result[0]
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    
+    c.execute("DELETE FROM notes WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"message": "Notes deleted ✅"})
+
+
+@app.route('/edit_notes/<int:id>', methods=['PUT'])
+def edit_notes(id):
+    data = request.json
+    title = data.get('title')
+    
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    
+    c.execute("UPDATE notes SET title=? WHERE id=?", (title, id))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"message": "Notes updated ✅"})
+
+
+# ================= SUBMISSIONS =================
+@app.route('/submit_assignment', methods=['POST'])
+def submit_assignment():
+    file = request.files['file']
+    assignment_id = request.form['assignment_id']
+    student_name = request.form['student_name']
+    student_enrollment = request.form['student_enrollment']
+
+    # Check if student has already submitted for this assignment
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    
+    c.execute("""
+        SELECT id FROM submissions 
+        WHERE assignment_id=? AND student_enrollment=?
+    """, (assignment_id, student_enrollment))
+    
+    existing = c.fetchone()
+    if existing:
+        conn.close()
+        return jsonify({"message": "You have already submitted this assignment. Delete your previous submission first to submit again. ❌"})
+
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    c.execute("""
+        INSERT INTO submissions (assignment_id, student_name, student_enrollment, filename, time)
+        VALUES (?, ?, ?, ?, ?)
+    """, (assignment_id, student_name, student_enrollment, filename, time_now))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Assignment submitted successfully ✅"})
+
+
+@app.route('/get_submissions/<int:assignment_id>')
+def get_submissions(assignment_id):
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM submissions WHERE assignment_id=? ORDER BY time DESC", (assignment_id,))
+    data = c.fetchall()
+
+    conn.close()
+    return jsonify(data)
+
+
+@app.route('/get_my_submissions/<enrollment>')
+def get_my_submissions(enrollment):
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT s.id, a.title, s.student_name, s.student_enrollment, s.filename, s.time
+        FROM submissions s
+        JOIN assignments a ON s.assignment_id = a.id
+        WHERE s.student_enrollment=? ORDER BY s.time DESC
+    """, (enrollment,))
+    data = c.fetchall()
+
+    conn.close()
+    return jsonify(data)
+
+
+@app.route('/get_recent_submissions')
+def get_recent_submissions():
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT s.id, a.title, s.student_name, s.student_enrollment, s.filename, s.time
+        FROM submissions s
+        JOIN assignments a ON s.assignment_id = a.id
+        ORDER BY s.time DESC
+        LIMIT 10
+    """)
+    rows = c.fetchall()
+    conn.close()
+
+    recent = [
+        {
+            "id": row[0],
+            "assignment_title": row[1],
+            "student_name": row[2],
+            "student_enrollment": row[3],
+            "filename": row[4],
+            "time": row[5]
+        } for row in rows
+    ]
+    return jsonify(recent)
+
+
+@app.route('/delete_submission/<int:id>', methods=['DELETE'])
+def delete_submission(id):
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    
+    # Get filename to delete file
+    c.execute("SELECT filename FROM submissions WHERE id=?", (id,))
+    result = c.fetchone()
+    if result:
+        filename = result[0]
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    
+    c.execute("DELETE FROM submissions WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"message": "Submission deleted ✅"})
 
 
 # ================= ANNOUNCEMENTS =================
@@ -333,6 +572,17 @@ def save_marks():
 
     data = request.json
 
+    try:
+        mid = int(data.get('mid', 0))
+        end = int(data.get('end', 0))
+        cap = int(data.get('cap', 0))
+        lab = int(data.get('lab', 0))
+    except (TypeError, ValueError):
+        return jsonify({"status": "error", "message": "Invalid credentials ❌"})
+
+    if mid < 0 or mid > 15 or end < 0 or end > 60 or cap < 0 or cap > 10 or lab < 0 or lab > 15:
+        return jsonify({"status": "error", "message": "Invalid credentials ❌"})
+
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
@@ -344,12 +594,12 @@ def save_marks():
             UPDATE marks 
             SET mid=?, end=?, cap=?, lab=? 
             WHERE name=?
-        """, (data['mid'], data['end'], data['cap'], data['lab'], data['name']))
+        """, (mid, end, cap, lab, data['name']))
     else:
         c.execute("""
             INSERT INTO marks (name, mid, end, cap, lab)
             VALUES (?, ?, ?, ?, ?)
-        """, (data['name'], data['mid'], data['end'], data['cap'], data['lab']))
+        """, (data['name'], mid, end, cap, lab))
 
     conn.commit()
     conn.close()

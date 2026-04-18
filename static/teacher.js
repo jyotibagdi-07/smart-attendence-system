@@ -51,11 +51,40 @@ function showTeacher(section){
     let sec = document.getElementById(section);
     if(sec) sec.style.display="block";
 
+    if(section==="dashboard") loadRecentSubmissions();
     if(section==="students") loadStudents();
     if(section==="schedule") loadSchedule();
     if(section==="assignments") loadAssignments();
     if(section==="notes") loadNotes();
     if(section==="marks") loadMarks();
+}
+
+function loadRecentSubmissions(){
+    fetch("/get_recent_submissions")
+    .then(r=>r.json())
+    .then(data=>{
+        let list = document.getElementById("recentSubmissions");
+        if(!list) return;
+
+        list.innerHTML = "";
+        if(!data || data.length === 0) {
+            list.innerHTML = "<li>No recent submissions</li>";
+            return;
+        }
+
+        data.forEach(item=>{
+            list.innerHTML += `
+            <li>
+                <strong>${item.assignment_title}</strong><br>
+                ${item.student_name} (${item.student_enrollment})<br>
+                <small>${item.time}</small><br>
+                <a href="/uploads/${item.filename}" target="_blank">View Submission</a>
+            </li>`;
+        });
+    })
+    .catch(()=>{
+        showMsg("Recent submissions load failed ❌","red");
+    });
 }
 
 // ================= ATTENDANCE =================
@@ -236,10 +265,82 @@ fetch("/get_assignments")
 .then(data=>{
     let list=document.getElementById("assignList");
     list.innerHTML="";
+    
     data.forEach(a=>{
-        list.innerHTML+=`<li>${a[1]} - ${a[3]}</li>`;
+        list.innerHTML+=`
+        <li id="assign-item-${a[0]}">
+            <div class="assign-row">
+                <span class="assign-title">${a[1]}</span>
+                <div class="assign-actions">
+                    <button class="action-btn" onclick="toggleEditAssignment(${a[0]})">Edit</button>
+                    <button class="danger-btn" onclick="showDeleteAssignment(${a[0]})">Delete</button>
+                </div>
+            </div>
+            <div class="assign-edit" id="assign-edit-${a[0]}" style="display:none;">
+                <input id="assign-input-${a[0]}" value="${a[1]}" />
+                <button onclick="saveAssignment(${a[0]})">Save</button>
+                <button onclick="cancelEditAssignment(${a[0]})">Cancel</button>
+            </div>
+            <div class="assign-delete-confirm" id="assign-delete-${a[0]}" style="display:none;">
+                <span>Delete this assignment?</span>
+                <button class="danger-btn" onclick="deleteAssignment(${a[0]})">Yes</button>
+                <button onclick="hideDeleteAssignment(${a[0]})">No</button>
+            </div>
+        </li>`;
     });
 });
+}
+
+function toggleEditAssignment(id){
+    let edit = document.getElementById(`assign-edit-${id}`);
+    if(!edit) return;
+    edit.style.display = edit.style.display === "none" ? "flex" : "none";
+}
+
+function cancelEditAssignment(id){
+    let edit = document.getElementById(`assign-edit-${id}`);
+    if(edit) edit.style.display = "none";
+}
+
+function saveAssignment(id){
+    let input = document.getElementById(`assign-input-${id}`);
+    if(!input) return;
+    let newTitle = input.value.trim();
+
+    if(!newTitle){
+        showMsg("Title cannot be empty ❌","red");
+        return;
+    }
+
+    fetch(`/edit_assignment/${id}`, {
+        method:"PUT",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({title: newTitle})
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        handleResponse(d);
+        loadAssignments();
+    });
+}
+
+function showDeleteAssignment(id){
+    let confirmBox = document.getElementById(`assign-delete-${id}`);
+    if(confirmBox) confirmBox.style.display = "flex";
+}
+
+function hideDeleteAssignment(id){
+    let confirmBox = document.getElementById(`assign-delete-${id}`);
+    if(confirmBox) confirmBox.style.display = "none";
+}
+
+function deleteAssignment(id){
+    fetch(`/delete_assignment/${id}`, {method:"DELETE"})
+    .then(r=>r.json())
+    .then(d=>{
+        handleResponse(d);
+        loadAssignments();
+    });
 }
 
 // ================= NOTES =================
@@ -273,9 +374,80 @@ fetch("/get_notes")
     list.innerHTML="";
     data.forEach(n=>{
         list.innerHTML+=`
-        <li>${n[1]} - <a href="/uploads/${n[2]}" target="_blank">Open</a></li>`;
+        <li id="note-item-${n[0]}">
+            <div class="assign-row">
+                <span class="assign-title">${n[1]}</span>
+                <div class="assign-actions">
+                    <button class="action-btn" onclick="toggleEditNotes(${n[0]})">Edit</button>
+                    <button class="danger-btn" onclick="showDeleteNotes(${n[0]})">Delete</button>
+                </div>
+            </div>
+            <div class="assign-edit" id="note-edit-${n[0]}" style="display:none;">
+                <input id="note-input-${n[0]}" value="${n[1]}" />
+                <button onclick="saveNotes(${n[0]})">Save</button>
+                <button onclick="cancelEditNotes(${n[0]})">Cancel</button>
+            </div>
+            <div class="assign-delete-confirm" id="note-delete-${n[0]}" style="display:none;">
+                <span>Delete these notes?</span>
+                <button class="danger-btn" onclick="deleteNotes(${n[0]})">Yes</button>
+                <button onclick="hideDeleteNotes(${n[0]})">No</button>
+            </div>
+            <div class="note-link">- <a href="/uploads/${n[2]}" target="_blank">Open</a></div>
+        </li>`;
     });
 });
+}
+
+function toggleEditNotes(id){
+    let edit = document.getElementById(`note-edit-${id}`);
+    if(!edit) return;
+    edit.style.display = edit.style.display === "none" ? "flex" : "none";
+}
+
+function cancelEditNotes(id){
+    let edit = document.getElementById(`note-edit-${id}`);
+    if(edit) edit.style.display = "none";
+}
+
+function saveNotes(id){
+    let input = document.getElementById(`note-input-${id}`);
+    if(!input) return;
+
+    let newTitle = input.value.trim();
+    if(!newTitle){
+        showMsg("Title cannot be empty ❌","red");
+        return;
+    }
+
+    fetch(`/edit_notes/${id}`, {
+        method:"PUT",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({title: newTitle})
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        handleResponse(d);
+        loadNotes();
+    });
+}
+
+function showDeleteNotes(id){
+    let confirmBox = document.getElementById(`note-delete-${id}`);
+    if(confirmBox) confirmBox.style.display = "flex";
+}
+
+function hideDeleteNotes(id){
+    let confirmBox = document.getElementById(`note-delete-${id}`);
+    if(confirmBox) confirmBox.style.display = "none";
+}
+
+function deleteNotes(id){
+    fetch(`/delete_notes/${id}`, {method:"DELETE"})
+    .then(r=>r.json())
+    .then(d=>{
+        handleResponse(d);
+        loadNotes();
+    });
 }
 
 // ================= ANNOUNCEMENTS =================
@@ -357,6 +529,11 @@ mid = mid ? Number(mid) : 0;
 end = end ? Number(end) : 0;
 cap = cap ? Number(cap) : 0;
 lab = lab ? Number(lab) : 0;
+
+if(mid < 0 || mid > 15 || end < 0 || end > 60 || cap < 0 || cap > 10 || lab < 0 || lab > 15){
+    showMsg("Invalid credentials ❌","red");
+    return;
+}
 
 fetch("/save_marks",{
     method:"POST",

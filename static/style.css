@@ -1,323 +1,372 @@
 /* ================= RESET ================= */
 * {
   margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
-}
+    padding: 0;
+      box-sizing: border-box;
+        font-family: 'Segoe UI', sans-serif;
+        }
 
-/* ================= BODY ================= */
-body {
-  background: #eef1f7;
-  color: #222;
-}
+        /* ================= BODY ================= */
+        body {
+          background: #eef1f7;
+            color: #222;
+            }
 
-/* ================= LOGIN ================= */
-.login-bg {
-  height: 100vh;
-  background: linear-gradient(135deg, #5f5fff, #6a5acd);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+            /* ================= LOGIN ================= */
+            .login-bg {
+              height: 100vh;
+                background: linear-gradient(135deg, #5f5fff, #6a5acd);
+                  display: flex;
+                    justify-content: center;
+                      align-items: center;
+                      }
 
-.login-card {
-  background: #fff;
-  padding: 35px;
-  border-radius: 18px;
-  width: 340px;
-  text-align: center;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
-  animation: fadeIn 0.4s ease-in-out;
-}
+                      .login-card {
+                        background: #fff;
+                          padding: 35px;
+                            border-radius: 18px;
+                              width: 340px;
+                                text-align: center;
+                                  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+                                    animation: fadeIn 0.4s ease-in-out;
+                                    }
 
-.login-card input,
-.login-card select {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  outline: none;
-}
+                                    .login-card input,
+                                    .login-card select {
+                                      width: 100%;
+                                        padding: 12px;
+                                          margin: 10px 0;
+                                            border-radius: 10px;
+                                              border: 1px solid #ddd;
+                                                outline: none;
+                                                }
 
-.login-card button {
-  width: 100%;
-  padding: 12px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-}
+                                                .login-card button {
+                                                  width: 100%;
+                                                    padding: 12px;
+                                                      background: #28a745;
+                                                        color: white;
+                                                          border: none;
+                                                            border-radius: 10px;
+                                                              cursor: pointer;
+                                                              }
 
-.login-card button:hover {
-  background: #218838;
-}
+                                                              .login-card button:hover {
+                                                                background: #218838;
+                                                                }
 
-/* ================= LAYOUT ================= */
-.layout {
-  display: flex;
-}
+                                                                /* ================= LAYOUT ================= */
+                                                                .layout {
+                                                                  display: flex;
+                                                                  }
 
-/* ================= SIDEBAR ================= */
-.sidebar {
-  width: 220px;
-  height: 100vh;
-  background: #2f2f5e;
-  color: white;
-  padding: 20px;
-  position: fixed;
-}
+                                                                  /* ================= SIDEBAR ================= */
+                                                                  .sidebar {
+                                                                    width: 220px;
+                                                                      height: 100vh;
+                                                                        background: #2f2f5e;
+                                                                          color: white;
+                                                                            padding: 20px;
+                                                                              position: fixed;
+                                                                              }
 
-.sidebar h2 {
-  margin-bottom: 20px;
-}
+                                                                              .sidebar h2 {
+                                                                                margin-bottom: 20px;
+                                                                                }
 
-.sidebar ul {
-  list-style: none;
-}
+                                                                                .sidebar ul {
+                                                                                  list-style: none;
+                                                                                  }
 
-.sidebar li {
-  padding: 12px;
-  margin-bottom: 5px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: 0.2s;
-}
+                                                                                  .sidebar li {
+                                                                                    padding: 12px;
+                                                                                      margin-bottom: 5px;
+                                                                                        cursor: pointer;
+                                                                                          border-radius: 8px;
+                                                                                            transition: 0.2s;
+                                                                                            }
 
-.sidebar li:hover {
-  background: #444;
-  transform: translateX(3px);
-}
+                                                                                            .sidebar li:hover {
+                                                                                              background: #444;
+                                                                                                transform: translateX(3px);
+                                                                                                }
 
-/* ================= MAIN ================= */
-.main {
-  margin-left: 240px;
-  padding: 25px;
-  width: 100%;
-}
+                                                                                                /* ================= MAIN ================= */
+                                                                                                .main {
+                                                                                                  margin-left: 240px;
+                                                                                                    padding: 25px;
+                                                                                                      width: 100%;
+                                                                                                      }
 
-/* ================= HEADER ================= */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+                                                                                                      /* ================= HEADER ================= */
+                                                                                                      .header {
+                                                                                                        display: flex;
+                                                                                                          justify-content: space-between;
+                                                                                                            align-items: center;
+                                                                                                            }
 
-/* ================= BUTTON ================= */
-button {
-  padding: 10px 16px;
-  border: none;
-  background: #28a745;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-}
+                                                                                                            /* ================= BUTTON ================= */
+                                                                                                            button {
+                                                                                                              padding: 10px 16px;
+                                                                                                                border: none;
+                                                                                                                  background: #28a745;
+                                                                                                                    color: white;
+                                                                                                                      border-radius: 8px;
+                                                                                                                        cursor: pointer;
+                                                                                                                          transition: 0.2s;
+                                                                                                                          }
 
-button:hover {
-  background: #218838;
-  transform: scale(1.02);
-}
+                                                                                                                          button:hover {
+                                                                                                                            background: #218838;
+                                                                                                                              transform: scale(1.02);
+                                                                                                                              }
 
-/* ================= SECTIONS ================= */
-.section {
-  display: none;
-  margin-top: 20px;
-}
+                                                                                                                              .action-btn,
+                                                                                                                              .danger-btn {
+                                                                                                                                padding: 8px 10px;
+                                                                                                                                font-size: 0.95rem;
+                                                                                                                                margin-left: 8px;
+                                                                                                                              }
 
-.section.active {
-  display: block;
-}
+                                                                                                                              .danger-btn {
+                                                                                                                                background: #e74c3c;
+                                                                                                                              }
 
-/* ================= CARD ================= */
-.card {
-  background: white;
-  color: #222;
-  padding: 20px;
-  border-radius: 14px;
-  margin-top: 15px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-  transition: 0.3s;
-}
+                                                                                                                              .danger-btn:hover {
+                                                                                                                                background: #c0392b;
+                                                                                                                              }
 
-.card:hover {
-  transform: translateY(-2px);
-}
+                                                                                                                              .assign-row {
+                                                                                                                                display: flex;
+                                                                                                                                justify-content: space-between;
+                                                                                                                                align-items: center;
+                                                                                                                                gap: 10px;
+                                                                                                                              }
 
-/* Ensure text visibility */
-.card h3,
-.card h4,
-.card p,
-.card li,
-.card td,
-.card th {
-  color: #222;
-}
+                                                                                                                              .assign-title {
+                                                                                                                                font-weight: 600;
+                                                                                                                              }
 
-/* ================= INPUT ================= */
-input, select {
-  padding: 10px;
-  margin: 8px 5px 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  outline: none;
-}
+                                                                                                                              .assign-actions button {
+                                                                                                                                min-width: 70px;
+                                                                                                                              }
 
-/* ================= TABLE ================= */
-.table-container {
-  overflow-x: auto;
-}
+                                                                                                                              .assign-edit,
+                                                                                                                              .assign-delete-confirm {
+                                                                                                                                display: none;
+                                                                                                                                margin-top: 10px;
+                                                                                                                                gap: 10px;
+                                                                                                                                align-items: center;
+                                                                                                                              }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 700px;
-  background: white;
-  color: #222;
-}
+                                                                                                                              .assign-edit input {
+                                                                                                                                flex: 1;
+                                                                                                                                min-width: 250px;
+                                                                                                                              }
 
-th {
-  background: #5f5fff;
-  color: white;
-}
+                                                                                                                              .assign-delete-confirm {
+                                                                                                                                background: #f8f8ff;
+                                                                                                                                border: 1px solid #ddd;
+                                                                                                                                padding: 10px;
+                                                                                                                                border-radius: 10px;
+                                                                                                                              }
 
-td, th {
-  padding: 10px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
-}
+                                                              .submission-link {
+                                                                margin-top: 8px;
+                                                                font-size: 0.9rem;
+                                                              }
 
-tr:hover {
-  background: #f1f1f1;
-}
+                                                                                                                                  .section.active {
+                                                                                                                                    display: block;
+                                                                                                                                    }
 
-/* ================= LIST ================= */
-ul {
-  margin-top: 10px;
-}
+                                                                                                                                    /* ================= CARD ================= */
+                                                                                                                                    .card {
+                                                                                                                                      background: white;
+                                                                                                                                        color: #222;
+                                                                                                                                          padding: 20px;
+                                                                                                                                            border-radius: 14px;
+                                                                                                                                              margin-top: 15px;
+                                                                                                                                                box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+                                                                                                                                                  transition: 0.3s;
+                                                                                                                                                  }
 
-li {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  transition: 0.2s;
-}
+                                                                                                                                                  .card:hover {
+                                                                                                                                                    transform: translateY(-2px);
+                                                                                                                                                    }
 
-li:hover {
-  background: #f8f8ff;
-}
+                                                                                                                                                    /* Ensure text visibility */
+                                                                                                                                                    .card h3,
+                                                                                                                                                    .card h4,
+                                                                                                                                                    .card p,
+                                                                                                                                                    .card li,
+                                                                                                                                                    .card td,
+                                                                                                                                                    .card th {
+                                                                                                                                                      color: #222;
+                                                                                                                                                      }
 
-/* ================= STATUS TEXT ================= */
-#marksStatus,
-#assignMsgTeacher,
-#announceMsg {
-  margin-top: 10px;
-  font-weight: bold;
-  color: #28a745;
-}
+                                                                                                                                                      /* ================= INPUT ================= */
+                                                                                                                                                      input, select {
+                                                                                                                                                        padding: 10px;
+                                                                                                                                                          margin: 8px 5px 8px 0;
+                                                                                                                                                            border-radius: 8px;
+                                                                                                                                                              border: 1px solid #ccc;
+                                                                                                                                                                outline: none;
+                                                                                                                                                                }
 
-/* ================= PROGRESS BAR ================= */
-.progress-bar {
-  width: 100%;
-  height: 12px;
-  background: #ddd;
-  border-radius: 10px;
-  margin: 10px 0;
-  overflow: hidden;
-}
+                                                                                                                                                                /* ================= TABLE ================= */
+                                                                                                                                                                .table-container {
+                                                                                                                                                                  overflow-x: auto;
+                                                                                                                                                                  }
 
-#progressFill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #28a745, #00c853);
-  transition: 0.4s ease;
-}
+                                                                                                                                                                  table {
+                                                                                                                                                                    width: 100%;
+                                                                                                                                                                      border-collapse: collapse;
+                                                                                                                                                                        min-width: 700px;
+                                                                                                                                                                          background: white;
+                                                                                                                                                                            color: #222;
+                                                                                                                                                                            }
 
-/* ================= DASHBOARD CARDS ================= */
-.cards {
-  display: flex;
-  gap: 20px;
-  margin-top: 20px;
-}
+                                                                                                                                                                            th {
+                                                                                                                                                                              background: #5f5fff;
+                                                                                                                                                                                color: white;
+                                                                                                                                                                                }
 
-.small {
-  flex: 1;
-  text-align: center;
-  background: linear-gradient(135deg, #5f5fff, #6a5acd);
-  color: white;
-  padding: 20px;
-  border-radius: 14px;
-  transition: 0.3s;
-}
+                                                                                                                                                                                td, th {
+                                                                                                                                                                                  padding: 10px;
+                                                                                                                                                                                    text-align: center;
+                                                                                                                                                                                      border-bottom: 1px solid #ddd;
+                                                                                                                                                                                      }
 
-.small:hover {
-  transform: scale(1.03);
-}
+                                                                                                                                                                                      tr:hover {
+                                                                                                                                                                                        background: #f1f1f1;
+                                                                                                                                                                                        }
 
-/* ================= TOAST (OPTIONAL) ================= */
-.toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #222;
-  color: white;
-  padding: 12px 18px;
-  border-radius: 8px;
-  display: none;
-  z-index: 9999;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-}
+                                                                                                                                                                                        /* ================= LIST ================= */
+                                                                                                                                                                                        ul {
+                                                                                                                                                                                          margin-top: 10px;
+                                                                                                                                                                                          }
 
-.toast.show {
-  display: block;
-}
+                                                                                                                                                                                          li {
+                                                                                                                                                                                            padding: 10px;
+                                                                                                                                                                                              border-bottom: 1px solid #eee;
+                                                                                                                                                                                                transition: 0.2s;
+                                                                                                                                                                                                }
 
-/* ================= SIDE MESSAGE (5 SEC POPUP) ================= */
-.side-message {
-  position: fixed;
-  top: 20px;
-  right: -300px;
-  background: #333;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  transition: 0.4s;
-  z-index: 999;
-}
+                                                                                                                                                                                                li:hover {
+                                                                                                                                                                                                  background: #f8f8ff;
+                                                                                                                                                                                                  }
 
-.side-message.show {
-  right: 20px;
-}
+                                                                                                                                                                                                  /* ================= STATUS TEXT ================= */
+                                                                                                                                                                                                  #marksStatus,
+                                                                                                                                                                                                  #assignMsgTeacher,
+                                                                                                                                                                                                  #announceMsg {
+                                                                                                                                                                                                    margin-top: 10px;
+                                                                                                                                                                                                      font-weight: bold;
+                                                                                                                                                                                                        color: #28a745;
+                                                                                                                                                                                                        }
 
-/* ================= ANIMATIONS ================= */
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(-10px);}
-  to {opacity: 1; transform: translateY(0);}
-}
+                                                                                                                                                                                                        /* ================= PROGRESS BAR ================= */
+                                                                                                                                                                                                        .progress-bar {
+                                                                                                                                                                                                          width: 100%;
+                                                                                                                                                                                                            height: 12px;
+                                                                                                                                                                                                              background: #ddd;
+                                                                                                                                                                                                                border-radius: 10px;
+                                                                                                                                                                                                                  margin: 10px 0;
+                                                                                                                                                                                                                    overflow: hidden;
+                                                                                                                                                                                                                    }
 
-/* ================= RESPONSIVE ================= */
-@media(max-width: 900px) {
-  .cards {
-    flex-direction: column;
-  }
+                                                                                                                                                                                                                    #progressFill {
+                                                                                                                                                                                                                      height: 100%;
+                                                                                                                                                                                                                        width: 0%;
+                                                                                                                                                                                                                          background: linear-gradient(90deg, #28a745, #00c853);
+                                                                                                                                                                                                                            transition: 0.4s ease;
+                                                                                                                                                                                                                            }
 
-  .sidebar {
-    position: relative;
-    width: 100%;
-    height: auto;
-  }
+                                                                                                                                                                                                                            /* ================= DASHBOARD CARDS ================= */
+                                                                                                                                                                                                                            .cards {
+                                                                                                                                                                                                                              display: flex;
+                                                                                                                                                                                                                                gap: 20px;
+                                                                                                                                                                                                                                  margin-top: 20px;
+                                                                                                                                                                                                                                  }
 
-  .main {
-    margin-left: 0;
-  }
-}
-#marks table th {
-    background: #2c3e50;
-    color: white;
-    width: 40%;
-}
+                                                                                                                                                                                                                                  .small {
+                                                                                                                                                                                                                                    flex: 1;
+                                                                                                                                                                                                                                      text-align: center;
+                                                                                                                                                                                                                                        background: linear-gradient(135deg, #5f5fff, #6a5acd);
+                                                                                                                                                                                                                                          color: white;
+                                                                                                                                                                                                                                            padding: 20px;
+                                                                                                                                                                                                                                              border-radius: 14px;
+                                                                                                                                                                                                                                                transition: 0.3s;
+                                                                                                                                                                                                                                                }
 
-#marks table td {
-    text-align: center;
-}
+                                                                                                                                                                                                                                                .small:hover {
+                                                                                                                                                                                                                                                  transform: scale(1.03);
+                                                                                                                                                                                                                                                  }
+
+                                                                                                                                                                                                                                                  /* ================= TOAST (OPTIONAL) ================= */
+                                                                                                                                                                                                                                                  .toast {
+                                                                                                                                                                                                                                                    position: fixed;
+                                                                                                                                                                                                                                                      top: 20px;
+                                                                                                                                                                                                                                                        right: 20px;
+                                                                                                                                                                                                                                                          background: #222;
+                                                                                                                                                                                                                                                            color: white;
+                                                                                                                                                                                                                                                              padding: 12px 18px;
+                                                                                                                                                                                                                                                                border-radius: 8px;
+                                                                                                                                                                                                                                                                  display: none;
+                                                                                                                                                                                                                                                                    z-index: 9999;
+                                                                                                                                                                                                                                                                      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                                                                                                                                                                                                                                                                      }
+
+                                                                                                                                                                                                                                                                      .toast.show {
+                                                                                                                                                                                                                                                                        display: block;
+                                                                                                                                                                                                                                                                        }
+
+                                                                                                                                                                                                                                                                        /* ================= SIDE MESSAGE (5 SEC POPUP) ================= */
+                                                                                                                                                                                                                                                                        .side-message {
+                                                                                                                                                                                                                                                                          position: fixed;
+                                                                                                                                                                                                                                                                            top: 20px;
+              right: 20px;
+                background: #333;
+                  color: white;
+                    padding: 12px 20px;
+                      border-radius: 8px;
+                        max-width: 320px;
+                        opacity: 0;
+                        transform: translateX(120%);
+                        transition: transform 0.4s ease, opacity 0.4s ease;
+                          z-index: 999;
+                          }
+
+                          .side-message.show {
+                            opacity: 1;
+                            transform: translateX(0);
+                                                                                                                                                                                                                                                                                              from {opacity: 0; transform: translateY(-10px);}
+                                                                                                                                                                                                                                                                                                to {opacity: 1; transform: translateY(0);}
+                                                                                                                                                                                                                                                                                                }
+
+                                                                                                                                                                                                                                                                                                /* ================= RESPONSIVE ================= */
+                                                                                                                                                                                                                                                                                                @media(max-width: 900px) {
+                                                                                                                                                                                                                                                                                                  .cards {
+                                                                                                                                                                                                                                                                                                      flex-direction: column;
+                                                                                                                                                                                                                                                                                                        }
+
+                                                                                                                                                                                                                                                                                                          .sidebar {
+                                                                                                                                                                                                                                                                                                              position: relative;
+                                                                                                                                                                                                                                                                                                                  width: 100%;
+                                                                                                                                                                                                                                                                                                                      height: auto;
+                                                                                                                                                                                                                                                                                                                        }
+
+                                                                                                                                                                                                                                                                                                                          .main {
+                                                                                                                                                                                                                                                                                                                              margin-left: 0;
+                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                #marks table th {
+                                                                                                                                                                                                                                                                                                                                    background: #2c3e50;
+                                                                                                                                                                                                                                                                                                                                        color: white;
+                                                                                                                                                                                                                                                                                                                                            width: 40%;
+                                                                                                                                                                                                                                                                                                                                            }
+
+                                                                                                                                                                                                                                                                                                                                            #marks table td {
+                                                                                                                                                                                                                                                                                                                                                text-align: center;
+                                                                                                                                                                                                                                                                                                                                                }

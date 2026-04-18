@@ -196,19 +196,105 @@ let list = document.getElementById("assignmentList");
 if(!list) return;
 
 list.innerHTML = "";
+let select = document.getElementById("assignmentSelect");
+if(select) select.innerHTML = "<option value=''>Select Assignment</option>";
 
 data.forEach(a=>{
     list.innerHTML += `
     <li>
         <b>${a[1]}</b><br>
         <small>${a[3]}</small><br>
-        <a href="/uploads/${a[2]}" target="_blank">View</a>
+        <a href="/uploads/${a[2]}" target="_blank">View Assignment</a>
     </li>`;
+    
+    if(select) select.innerHTML += `<option value="${a[0]}">${a[1]}</option>`;
 });
+
+loadSubmissions();
 })
 .catch(()=>{
     showMsg("Assignments load failed ❌","red");
 });
+}
+
+function submitAssignment(){
+    let assignmentId = document.getElementById("assignmentSelect").value;
+    let file = document.getElementById("submissionFile").files[0];
+    
+    if(!assignmentId || !file){
+        showMsg("Select assignment and file ❌","red");
+        return;
+    }
+    
+    let fd = new FormData();
+    fd.append("assignment_id", assignmentId);
+    fd.append("student_name", localStorage.getItem("name"));
+    fd.append("student_enrollment", localStorage.getItem("enrollment"));
+    fd.append("file", file);
+    
+    fetch("/submit_assignment", {method:"POST", body:fd})
+    .then(r=>r.json())
+    .then(d=>{
+        handleResponse(d);
+        loadSubmissions();
+        // Clear the file input after successful submission
+        document.getElementById("submissionFile").value = "";
+    })
+    .catch(()=>{
+        showMsg("Submission failed ❌","red");
+    });
+}
+
+function loadSubmissions(){
+    let enrollment = localStorage.getItem("enrollment");
+    
+    fetch("/get_my_submissions/" + enrollment)
+    .then(r=>r.json())
+    .then(data=>{
+        let list = document.getElementById("submissionList");
+        if(!list) return;
+        
+        list.innerHTML = "";
+        data.forEach(s=>{
+            list.innerHTML += `
+            <li id="submission-item-${s[0]}">
+                <div class="assign-row">
+                    <span class="assign-title">${s[1]} - ${s[5]}</span>
+                    <div class="assign-actions">
+                        <button class="danger-btn" onclick="showDeleteSubmission(${s[0]})">Delete</button>
+                    </div>
+                </div>
+                <div class="assign-delete-confirm" id="submission-delete-${s[0]}" style="display:none;">
+                    <span>Delete this submission?</span>
+                    <button class="danger-btn" onclick="deleteSubmission(${s[0]})">Yes</button>
+                    <button onclick="hideDeleteSubmission(${s[0]})">No</button>
+                </div>
+                <div class="submission-link"><a href="/uploads/${s[4]}" target="_blank">View Submission</a></div>
+            </li>`;
+        });
+    })
+    .catch(()=>{
+        showMsg("Submissions load failed ❌","red");
+    });
+}
+
+function showDeleteSubmission(id){
+    let confirmBox = document.getElementById(`submission-delete-${id}`);
+    if(confirmBox) confirmBox.style.display = "flex";
+}
+
+function hideDeleteSubmission(id){
+    let confirmBox = document.getElementById(`submission-delete-${id}`);
+    if(confirmBox) confirmBox.style.display = "none";
+}
+
+function deleteSubmission(id){
+    fetch(`/delete_submission/${id}`, {method:"DELETE"})
+    .then(r=>r.json())
+    .then(d=>{
+        handleResponse(d);
+        loadSubmissions();
+    });
 }
 
 // ================= NOTES =================
