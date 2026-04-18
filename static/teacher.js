@@ -79,6 +79,7 @@ function showTeacher(section){
 }
     if(section==="notes") loadNotes();
     if(section==="marks") loadMarks();
+    if(section==="announcements") loadTeacherAnnouncements();
     loadTeacherNotifications();
     loadTeacherDashboard();
 }
@@ -262,8 +263,34 @@ fetch("/get_assignments")
     let list=document.getElementById("assignList");
     list.innerHTML="";
     data.forEach(a=>{
-        list.innerHTML+=`<li>${a[1]} - ${a[3]}</li>`;
+        list.innerHTML+=`
+        <li>
+            <b>${a[1]}</b> - ${a[3]}<br>
+            <a href="/uploads/${a[2]}" target="_blank">Open</a>
+            <button onclick="deleteAssignment(${a[0]})" style="background:#e74c3c;margin-left:8px;">
+                Delete
+            </button>
+        </li>`;
     });
+});
+}
+function deleteAssignment(assignmentId){
+if(!confirm("Delete this assignment?")){
+    return;
+}
+
+fetch("/delete_assignment",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({assignment_id: assignmentId})
+})
+.then(r=>r.json())
+.then(d=>{
+    handleResponse(d);
+    loadAssignments();
+})
+.catch(()=>{
+    showMsg("Delete failed ❌","red");
 });
 }
 
@@ -316,13 +343,44 @@ if(!msg){
 fetch("/add_announcement",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:msg})
+    body:JSON.stringify({
+        message:msg,
+        posted_by: localStorage.getItem("name") || "Teacher"
+    })
 })
+
 .then(r=>r.json())
 .then(d=>{
     handleResponse(d);
+    document.getElementById("announcementInput").value = "";
+    loadTeacherAnnouncements();
 });
 }
+
+function loadTeacherAnnouncements(){
+fetch("/get_announcements")
+.then(r=>r.json())
+.then(data=>{
+    let list = document.getElementById("teacherAnnouncementList");
+    if(!list) return;
+
+    list.innerHTML = "";
+
+    if(data.length === 0){
+        list.innerHTML = "<li>No announcements yet</li>";
+        return;
+    }
+
+    data.forEach(a=>{
+        list.innerHTML += `
+        <li>
+            <b>${a[1]}</b><br>
+            <small>By: ${a[3]} | ${a[2]}</small>
+        </li>`;
+    });
+});
+}
+
 
 // ================= MARKS =================
 function loadMarks(){
@@ -419,7 +477,7 @@ if(!list) return;
 list.innerHTML = "";
 
 data.slice(0,3).forEach(a=>{
-    list.innerHTML += `<li>📢 ${a[1]}</li>`;
+    list.innerHTML += `<li>📢 ${a[1]} <small>(${a[3]})</small></li>`;
 });
 });
 }

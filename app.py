@@ -57,8 +57,15 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS announcements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         message TEXT,
-        time TEXT
+        time TEXT,
+        posted_by TEXT DEFAULT 'Teacher'
     )''')
+
+    # Backward compatibility for existing DBs
+    c.execute("PRAGMA table_info(announcements)")
+    cols = [row[1] for row in c.fetchall()]
+    if "posted_by" not in cols:
+        c.execute("ALTER TABLE announcements ADD COLUMN posted_by TEXT DEFAULT 'Teacher'")
 
     # ================= MARKS =================
     c.execute('''CREATE TABLE IF NOT EXISTS marks (
@@ -331,7 +338,48 @@ def get_assignments():
 
     conn.close()
     return jsonify(data)
+@app.route('/delete_assignment', methods=['POST'])
+def delete_assignment():
+
+    data = request.json
+    assignment_id = data.get('assignment_id')
+
+    if not assignment_id:
+        return jsonify({"status": "error", "message": "Invalid assignment ❌"}), 400
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("SELECT filename FROM assignments WHERE id=?", (assignment_id,))
+    row = c.fetchone()
+
+    if not row:
+        conn.close()
+        return jsonify({"status": "error", "message": "Assignment not found ❌"}), 404
+
+    filename = row[0]
+
+    c.execute("DELETE FROM assignments WHERE id=?", (assignment_id,))
+    conn.commit()
+
+    # Delete file only when no other record references it.
+    c.execute("SELECT COUNT(*) FROM assignments WHERE filename=?", (filename,))
+    assignment_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM submissions WHERE filename=?", (filename,))
+    submission_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM notes WHERE filename=?", (filename,))
+    notes_count = c.fetchone()[0]
+
+    conn.close()
+
+    if assignment_count == 0 and submission_count == 0 and notes_count == 0:
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    return jsonify({"status": "success", "message": "Assignment deleted ✅"})
 @app.route('/get_submissions')
+
 def get_submissions():
 
     conn = sqlite3.connect("database.db")
@@ -366,6 +414,52 @@ def submit_assignment():
     conn.close()
 
     return jsonify({"message": "Submitted ✅"})
+    # =================delete_submission  =================
+@app.route('/delete_submission', methods=['POST'])
+def delete_submission():
+
+    data = request.json
+    submission_id = data.get('submission_id')
+    student_name = data.get('name')
+
+    if not submission_id or not student_name:
+        return jsonify({"status": "error", "message": "Invalid request ❌"}), 400
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT filename FROM submissions
+        WHERE id=? AND student_name=?
+    """, (submission_id, student_name))
+    row = c.fetchone()
+
+    if not row:
+        conn.close()
+        return jsonify({"status": "error", "message": "Submission not found ❌"}), 404
+
+    filename = row[0]
+
+    c.execute("DELETE FROM submissions WHERE id=? AND student_name=?",
+              (submission_id, student_name))
+    conn.commit()
+
+    # Delete file only when no other record references it.
+    c.execute("SELECT COUNT(*) FROM submissions WHERE filename=?", (filename,))
+    submission_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM assignments WHERE filename=?", (filename,))
+    assignment_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM notes WHERE filename=?", (filename,))
+    notes_count = c.fetchone()[0]
+
+    conn.close()
+
+    if submission_count == 0 and assignment_count == 0 and notes_count == 0:
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    return jsonify({"status": "success", "message": "Submission deleted ✅"})
 
 
 # ================= NOTES =================
@@ -410,13 +504,14 @@ def add_announcement():
     data = request.json
     time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
     c.execute("""
-        INSERT INTO announcements (message, time)
-        VALUES (?, ?)
-    """, (data['message'], time_now))
+        INSERT INTO announcements (message, time, posted_by)
+        VALUES (?, ?, ?)
+    """, (data['message'], time_now, posted_by))
 
     conn.commit()
     conn.close()
@@ -565,4 +660,4 @@ def change_password_api():
 # ================= RUN =================
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True,port=5002)
+    app.run(debug=True,port=5003)

@@ -243,7 +243,10 @@ assignments.forEach(a=>{
             ?
             `<span style="color:green;font-weight:bold;">
                 ✅ Submitted (${submitted[4]})
-            </span>`
+        
+            </span>
+            <br><br>
+            <button onclick="deleteSubmission(${submitted[0]})" style="background:#e74c3c;">Delete Submission</button>`
             :
             `<form onsubmit="submitAssignment(event,'${a[1]}')">
                 <input type="file" required>
@@ -277,7 +280,7 @@ data.forEach(a=>{
     list.innerHTML += `
     <li>
         <b>${a[1]}</b><br>
-        <small>${a[2]}</small>
+        <small>By: ${a[3]} | ${a[2]}</small>
     </li>`;
 });
 })
@@ -374,6 +377,35 @@ fetch("/submit_assignment",{
     showMsg("Submission failed ❌","red"); // ✅ FIXED
 });
 
+}
+function deleteSubmission(submissionId){
+
+let name = localStorage.getItem("name");
+
+if(!name){
+    showMsg("Session expired ❌","red");
+    return;
+}
+
+if(!confirm("Are you sure you want to delete this submission?")){
+    return;
+}
+
+fetch("/delete_submission",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({submission_id: submissionId, name})
+})
+.then(r=>r.json())
+.then(d=>{
+    handleResponse(d);
+    setTimeout(()=>{
+        loadAssignments();
+    }, 300);
+})
+.catch(()=>{
+    showMsg("Delete failed ❌","red");
+});
 }
 
 // ================= LOGOUT =================
@@ -507,7 +539,7 @@ if(!list) return;
 list.innerHTML = "";
 
 data.slice(0,3).forEach(a=>{
-    list.innerHTML += `<li>📢 ${a[1]}</li>`;
+   list.innerHTML += `<li>📢 ${a[1]} <small>(${a[3]})</small></li>`;
 });
 
 });
