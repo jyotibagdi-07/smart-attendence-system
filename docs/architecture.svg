@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+  <defs>
+    <style>
+      .title{font:700 28px Arial;fill:#172033}.h{font:700 18px Arial;fill:#172033}.t{font:15px Arial;fill:#445066}.box{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}.accent{fill:#eef2ff;stroke:#6366f1;stroke-width:2}.db{fill:#ecfeff;stroke:#0891b2;stroke-width:2}.arrow{stroke:#64748b;stroke-width:3;fill:none;marker-end:url(#m)}
+    </style>
+    <marker id="m" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+  </defs>
+  <rect width="1200" height="620" fill="#f8fafc"/>
+  <text x="600" y="48" text-anchor="middle" class="title">EduSmart — System Architecture</text>
+
+  <rect x="70" y="110" width="260" height="180" rx="18" class="box"/>
+  <text x="200" y="145" text-anchor="middle" class="h">Users</text>
+  <text x="110" y="180" class="t">• Student</text>
+  <text x="110" y="208" class="t">• Teacher</text>
+  <text x="110" y="236" class="t">• Login &amp; role selection</text>
+  <text x="110" y="264" class="t">• Browser-based UI</text>
+
+  <rect x="470" y="95" width="270" height="220" rx="18" class="accent"/>
+  <text x="605" y="135" text-anchor="middle" class="h">Frontend</text>
+  <text x="505" y="175" class="t">HTML5 + CSS3</text>
+  <text x="505" y="205" class="t">Vanilla JavaScript</text>
+  <text x="505" y="235" class="t">Chart.js</text>
+  <text x="505" y="265" class="t">Fetch/API requests</text>
+  <text x="505" y="295" class="t">Dynamic dashboard updates</text>
+
+  <rect x="860" y="95" width="270" height="220" rx="18" class="box"/>
+  <text x="995" y="135" text-anchor="middle" class="h">Backend</text>
+  <text x="895" y="175" class="t">Python + Flask</text>
+  <text x="895" y="205" class="t">REST-style routes</text>
+  <text x="895" y="235" class="t">Authentication / role logic</text>
+  <text x="895" y="265" class="t">Attendance management</text>
+  <text x="895" y="295" class="t">File upload &amp; download</text>
+
+  <rect x="470" y="400" width="270" height="145" rx="18" class="db"/>
+  <text x="605" y="440" text-anchor="middle" class="h">SQLite Database</text>
+  <text x="505" y="475" class="t">Users &amp; roles</text>
+  <text x="505" y="500" class="t">Attendance &amp; schedules</text>
+  <text x="505" y="525" class="t">Assignments, notes, marks</text>
+
+  <rect x="860" y="400" width="270" height="145" rx="18" class="box"/>
+  <text x="995" y="440" text-anchor="middle" class="h">File Storage</text>
+  <text x="895" y="475" class="t">uploads/</text>
+  <text x="895" y="500" class="t">Assignments</text>
+  <text x="895" y="525" class="t">Notes &amp; submissions</text>
+
+  <path d="M330 200 H470" class="arrow"/>
+  <path d="M740 200 H860" class="arrow"/>
+  <path d="M995 315 V400" class="arrow"/>
+  <path d="M860 472 H740" class="arrow"/>
+  <path d="M605 315 V400" class="arrow"/>
+  <text x="400" y="185" text-anchor="middle" class="t">UI interaction</text>
+  <text x="800" y="185" text-anchor="middle" class="t">HTTP / JSON</text>
+  <text x="1030" y="355" text-anchor="middle" class="t">File I/O</text>
+  <text x="800" y="455" text-anchor="middle" class="t">SQL queries</text>
+</svg>
