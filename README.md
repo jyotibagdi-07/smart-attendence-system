@@ -13,10 +13,12 @@ A full-stack academic management platform for **students and teachers** to manag
 <img src="https://img.shields.io/badge/Chart.js-Interactive-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white">
 </p>
 
+<p>
+<a href="https://edusmart-academic-management.vercel.app/">🚀 Live Demo</a> ·
 <a href="https://github.com/jyotibagdi-07/smart-attendence-system">📦 Repository</a> ·
-<a href="#-demo">🎥 Demo</a> ·
 <a href="#-installation">🚀 Installation</a> ·
 <a href="#-architecture">🏗️ Architecture</a>
+</p>
 
 </div>
 
@@ -146,6 +148,10 @@ smart-attendence-system/
 │   └── architecture.svg
 ├── uploads/
 ├── app.py
+├── api/
+│   └── index.py
+├── deploy.py
+├── vercel.json
 ├── students.csv
 ├── teacher.csv
 ├── requirements.txt
@@ -202,29 +208,21 @@ On first run, the Flask app initializes the SQLite database and loads initial us
 
 ### 🌐 Live Demo
 
-> 🚧 **Coming soon:** Deploy the Flask application and replace the placeholder below.
+🚀 **[Launch EduSmart](https://edusmart-academic-management.vercel.app/)**
 
-`Live Demo: https://your-deployed-url.example`
+Try the deployed application and explore the Student and Teacher workflows.
 
-### ▶️ Video Walkthrough
+### Recommended Demo Flow
 
-> 🎬 **Coming soon:** Add your YouTube, Loom, or Google Drive demo URL.
+1. Login as **Teacher**
+2. Schedule a class and enable attendance
+3. Upload an assignment and notes
+4. Post an announcement and update marks
+5. Login as **Student**
+6. View attendance, assignments, notes, announcements, and marks
+7. Submit an assignment
 
-`Demo Video: https://youtu.be/YOUR_VIDEO_ID`
-
-### Recommended 1–2 Minute Demo
-
-1. Login as **Student**
-2. Show attendance overview
-3. Mark attendance for a scheduled class
-4. Open an assignment and submit a file
-5. Show notes, announcements, and marks
-6. Login as **Teacher**
-7. Schedule a class and toggle attendance
-8. Upload assignment/notes
-9. Show submissions and marks
-
-This demonstrates the complete student → Flask API → database/file storage → teacher workflow.
+This demonstrates the complete teacher → backend → student workflow.
 
 ---
 
@@ -241,7 +239,7 @@ This demonstrates the complete student → Flask API → database/file storage �
 | Notes | `POST /upload_notes`, `GET /get_notes` |
 | Dashboards | `/student`, `/teacher` |
 
-The frontend uses JavaScript `fetch()` requests and JSON responses to update the UI without full-page navigation for academic actions.
+The frontend uses JavaScript `fetch()` requests and JSON responses to update the UI for academic actions.
 
 ---
 
@@ -260,7 +258,7 @@ marks
 submissions
 ```
 
-Core academic metadata is stored in SQLite, while uploaded files are stored in `uploads/`.
+Core academic metadata is stored in SQLite, while uploaded files are stored in `uploads/` during local development.
 
 ---
 
@@ -274,12 +272,13 @@ Core academic metadata is stored in SQLite, while uploaded files are stored in `
 - Dynamic UI updates using `fetch()` and JSON
 - Chart.js data visualization
 - Modular Flask project organization
+- Deployment of a Flask application on Vercel
 
 ---
 
 ## 🔒 Security & Production Notes
 
-EduSmart is currently an **academic/portfolio project**, not a production-ready authentication system. Before deployment, the following should be implemented:
+EduSmart is currently an **academic/portfolio project**, not a production-ready authentication system. Before production use, the following should be implemented:
 
 - Password hashing instead of plaintext passwords
 - Server-side sessions and stronger authorization
@@ -302,16 +301,20 @@ The backend currently uses Werkzeug's `secure_filename()` for uploaded filenames
 - [ ] Responsive mobile UI
 - [ ] Advanced attendance analytics
 - [ ] Search and filtering
-- [ ] Production deployment + CI/CD
+- [ ] Production database and persistent storage
+- [ ] Automated testing + CI/CD
 
 ---
 
-## 👩‍💻 Author
+## 👩‍💻 Team
 
-**Jyoti Bagdi**
+### Jyoti Bagdi
+[![GitHub](https://img.shields.io/badge/GitHub-jyotibagdi--07-181717?style=flat&logo=github)](https://github.com/jyotibagdi-07)
 
-- GitHub: [@jyotibagdi-07](https://github.com/jyotibagdi-07)
-- Repository: [EduSmart](https://github.com/jyotibagdi-07/smart-attendence-system)
+### Lavanya Gupta
+[![GitHub](https://img.shields.io/badge/GitHub-lavanyagupta--coder-181717?style=flat&logo=github)](https://github.com/lavanyagupta-coder)
+
+**EduSmart was developed collaboratively by Jyoti Bagdi and Lavanya Gupta.**
 
 ---
 
@@ -322,5 +325,9 @@ If you find EduSmart useful, consider giving the repository a ⭐.
 <div align="center">
 
 **Built with ❤️ using Python, Flask, JavaScript & SQLite**
+
+<br><br>
+
+🚀 **[Live Demo](https://edusmart-academic-management.vercel.app/)** · 💻 **[GitHub Repository](https://github.com/jyotibagdi-07/smart-attendence-system)**
 
 </div>
